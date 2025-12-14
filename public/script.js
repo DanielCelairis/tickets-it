@@ -64,3 +64,11 @@ function categoriaSelect() {
 }
 
 window.onload = cargarTickets;
+
+const rol = localStorage.getItem("rol");
+
+if (rol !== "IT") {
+  document.querySelectorAll("select").forEach(s => {
+    if (s.onchange) s.disabled = true;
+  });
+}

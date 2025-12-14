@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Login - Tickets IT</title>
+  <style>
+    body { font-family: Arial; background:#f4f6f8; }
+    .login {
+      width: 300px;
+      margin: 100px auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+    }
+    input, button {
+      width: 100%;
+      margin-top: 10px;
+      padding: 8px;
+    }
+    button {
+      background: #3498db;
+      color: white;
+      border: none;
+    }
+  </style>
+</head>
+<body>
+
+<div class="login">
+  <h3>🔐 Login Tickets IT</h3>
+  <input id="usuario" placeholder="Usuario">
+  <input id="password" type="password" placeholder="Contraseña">
+  <button onclick="login()">Ingresar</button>
+  <p id="msg" style="color:red"></p>
+</div>
+
+<script>
+function login() {
+  fetch("/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      usuario: usuario.value,
+      password: password.value
+    })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.ok) {
+      localStorage.setItem("rol", data.rol);
+      window.location = "/";
+    } else {
+      msg.innerText = "Credenciales incorrectas";
+    }
+  });
+}
+</script>
+
+</body>
+</html>

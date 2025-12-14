@@ -1,6 +1,7 @@
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
+const USERS_FILE = path.join(__dirname, "users.json");
 
 const app = express();
 const PORT = 3000;
@@ -60,6 +61,20 @@ app.get("/reporte", (req, res) => {
   res.header("Content-Type", "text/csv");
   res.attachment("reporte_tickets.csv");
   res.send(csv);
+});
+
+// Login
+app.post("/login", (req, res) => {
+  const users = JSON.parse(fs.readFileSync(USERS_FILE, "utf8"));
+  const user = users.find(
+    u => u.usuario === req.body.usuario && u.password === req.body.password
+  );
+
+  if (user) {
+    res.json({ ok: true, rol: user.rol });
+  } else {
+    res.json({ ok: false });
+  }
 });
 
 // Iniciar servidor
