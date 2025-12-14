@@ -30,18 +30,22 @@ function cargarTickets() {
         const fila = document.createElement("tr");
 
         fila.innerHTML = `
-          <td>${t.tipo}</td>
-          <td>${t.categoria}</td>
-          <td>${t.descripcion}</td>
-          <td>
-            <select onchange="cambiarEstado(${t.id}, this.value)">
-              <option ${t.estado=="Abierto"?"selected":""}>Abierto</option>
-              <option ${t.estado=="En Proceso"?"selected":""}>En Proceso</option>
-              <option ${t.estado=="Cerrado"?"selected":""}>Cerrado</option>
-            </select>
-          </td>
-        `;
-
+  <td>${t.tipo}</td>
+  <td>${t.categoria}</td>
+  <td>${t.descripcion}</td>
+  <td>
+    <select class="estado" onchange="cambiarEstado('${t._id}', this.value)">
+      <option ${t.estado === "Abierto" ? "selected" : ""}>Abierto</option>
+      <option ${t.estado === "En Proceso" ? "selected" : ""}>En Proceso</option>
+      <option ${t.estado === "Cerrado" ? "selected" : ""}>Cerrado</option>
+    </select>
+  </td>
+  <td>
+    ${localStorage.getItem("rol") === "IT"
+      ? `<button onclick="eliminarTicket('${t._id}')">🗑 Eliminar</button>`
+      : ""}
+  </td>
+`;
         tbody.appendChild(fila);
       });
     });
@@ -80,4 +84,13 @@ if (rol !== "IT") {
  function logout() {
   localStorage.clear();
   location.replace("/login.html");
+}
+
+function eliminarTicket(id) {
+  if (!confirm("¿Eliminar este ticket?")) return;
+
+  fetch(`/tickets/${id}`, {
+    method: "DELETE"
+  })
+  .then(() => cargarTickets());
 }

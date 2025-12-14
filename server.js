@@ -78,6 +78,15 @@ app.post("/login", (req, res) => {
   }
 });
 
+app.delete("/tickets/:id", async (req, res) => {
+  try {
+    await Ticket.findByIdAndDelete(req.params.id);
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ ok: false });
+  }
+});
+
 // Iniciar servidor
 app.listen(PORT, () => {
   console.log(`Servidor activo en http://localhost:${PORT}`);
