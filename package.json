@@ -1,21 +1,12 @@
 {
   "name": "tickets-it",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Sistema de tickets IT",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
     "express": "^5.2.1"
   }
-
-"scripts": {
-  "start": "node server.js"
-}
-
 }
