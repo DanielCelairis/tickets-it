@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Sistema de Tickets IT</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      padding: 30px;
+    }
+    h2 {
+      color: #2c3e50;
+    }
+    .box {
+      background: #ffffff;
+      padding: 20px;
+      max-width: 500px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    select, input, button {
+      width: 100%;
+      margin-top: 10px;
+      padding: 8px;
+    }
+    button {
+      background: #3498db;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #2980b9;
+    }
+    a {
+      display: block;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="box">
+    <h2>📨 Sistema de Tickets IT</h2>
+
+    <label>Tipo</label>
+    <select id="tipo">
+      <option>Incidencia</option>
+      <option>Requerimiento</option>
+    </select>
+
+    <label>Categoría</label>
+    <select id="categoria">
+      <option>Desbloqueo de Usuario Isoft</option>
+      <option>Desbloqueo de Usuario EmeSmart</option>
+      <option>Reinicio de Coordenadas</option>
+      <option>Asignación de QR</option>
+      <option>Falla EmeSmart</option>
+      <option>Otras</option>
+    </select>
+
+    <label>Descripción</label>
+    <input id="descripcion" placeholder="Describe el problema o solicitud">
+
+    <button onclick="crearTicket()">Crear Ticket</button>
+
+    <a href="/reporte">📥 Descargar reporte (Excel)</a>
+    
+    <hr>
+<h3>📋 Tickets creados</h3>
+<table border="1" width="100%" id="tablaTickets">
+  <thead>
+    <tr>
+      <th>Tipo</th>
+      <th>Categoría</th>
+      <th>Descripción</th>
+      <th>Estado</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
