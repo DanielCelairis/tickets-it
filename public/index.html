@@ -42,6 +42,11 @@
       margin-top: 15px;
     }
   </style>
+  <script>
+  if (!localStorage.getItem("rol")) {
+    window.location.replace("/login.html");
+  }
+</script>
 </head>
 <body>
 

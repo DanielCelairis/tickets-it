@@ -1,9 +1,3 @@
-const rol = localStorage.getItem("rol");
-
-if (!rol) {
-  window.location = "/login.html";
-}
-
 function crearTicket() {
   const tipo = tipoSelect().value;
   const categoria = categoriaSelect().value;
@@ -82,7 +76,8 @@ if (rol !== "IT") {
     e.disabled = true;
   });
   }
-  function logout() {
-  localStorage.removeItem("rol");
-  window.location = "/login.html";
+
+ function logout() {
+  localStorage.clear();
+  location.replace("/login.html");
 }
