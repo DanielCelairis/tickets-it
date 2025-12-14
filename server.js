@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
@@ -80,4 +81,9 @@ app.post("/login", (req, res) => {
 // Iniciar servidor
 app.listen(PORT, () => {
   console.log(`Servidor activo en http://localhost:${PORT}`);
+
 });
+
+mongoose.connect(process.env.MONGO_URL)
+  .then(() => console.log("MongoDB conectado"))
+  .catch(err => console.error(err));

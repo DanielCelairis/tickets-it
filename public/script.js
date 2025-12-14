@@ -1,3 +1,9 @@
+const rol = localStorage.getItem("rol");
+
+if (!rol) {
+  window.location = "/login.html";
+}
+
 function crearTicket() {
   const tipo = tipoSelect().value;
   const categoria = categoriaSelect().value;
@@ -18,7 +24,7 @@ function crearTicket() {
     cargarTickets();
   });
 }
-
+<select class="estado" onchange="cambiarEstado(...)"></select>
 function cargarTickets() {
   fetch("/tickets")
     .then(res => res.json())
@@ -67,8 +73,16 @@ window.onload = cargarTickets;
 
 const rol = localStorage.getItem("rol");
 
+// Ambos pueden crear tickets
+document.getElementById("formTicket").style.display = "block";
+
+// Solo IT puede cambiar estados
 if (rol !== "IT") {
-  document.querySelectorAll("select").forEach(s => {
-    if (s.onchange) s.disabled = true;
+  document.querySelectorAll(".estado").forEach(e => {
+    e.disabled = true;
   });
+  }
+  function logout() {
+  localStorage.removeItem("rol");
+  window.location = "/login.html";
 }

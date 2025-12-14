@@ -1,4 +1,8 @@
 <!DOCTYPE html>
+<button id="btnLogout" onclick="logout()" style="float:right;">
+  Cerrar sesión
+</button>
+
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -45,6 +49,7 @@
     <h2>📨 Sistema de Tickets IT</h2>
 
     <label>Tipo</label>
+<form id="formTicket" onsubmit="crearTicket(event)">
     <select id="tipo">
       <option>Incidencia</option>
       <option>Requerimiento</option>
