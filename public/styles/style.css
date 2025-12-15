@@ -218,3 +218,13 @@ th {
   border-radius: 14px;
   text-align: center;
 }
+
+.filtros {
+  display: flex;
+  gap: 10px;
+  margin: 20px 0;
+}
+
+.filtros select, .filtros button {
+  padding: 8px 12px;
+}
