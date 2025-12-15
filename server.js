@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
-// 🔌 Conexión Mongo
+// MongoDB
 mongoose.connect(process.env.MONGO_URL)
   .then(() => console.log("✅ MongoDB conectado"))
   .catch(err => console.error("❌ Mongo error:", err));
@@ -30,9 +30,11 @@ app.post("/tickets", async (req, res) => {
 
 // Cambiar estado
 app.post("/estado", async (req, res) => {
-  await Ticket.findByIdAndUpdate(req.body.id, {
-    estado: req.body.estado
-  });
+  await Ticket.findByIdAndUpdate(
+    req.body.id,
+    { estado: req.body.estado },
+    { new: true }
+  );
   res.json({ ok: true });
 });
 
@@ -42,7 +44,7 @@ app.delete("/tickets/:id", async (req, res) => {
   res.json({ ok: true });
 });
 
-// Login (sigue con JSON)
+// Login
 app.post("/login", (req, res) => {
   const users = JSON.parse(fs.readFileSync("users.json"));
   const user = users.find(

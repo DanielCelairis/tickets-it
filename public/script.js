@@ -27,8 +27,7 @@ form.addEventListener("submit", e => {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ tipo, categoria, descripcion })
-  })
-  .then(() => {
+  }).then(() => {
     form.reset();
     cargarTickets();
   });
@@ -49,14 +48,14 @@ function cargarTickets() {
           <td>${t.categoria}</td>
           <td>${t.descripcion}</td>
           <td>
-            <select onchange="cambiarEstado(${t.id}, this.value)" ${rol !== "IT" ? "disabled" : ""}>
+            <select onchange="cambiarEstado('${t._id}', this.value)" ${rol !== "IT" ? "disabled" : ""}>
               <option ${t.estado === "Abierto" ? "selected" : ""}>Abierto</option>
               <option ${t.estado === "En Proceso" ? "selected" : ""}>En Proceso</option>
               <option ${t.estado === "Cerrado" ? "selected" : ""}>Cerrado</option>
             </select>
           </td>
           <td>
-            ${rol === "IT" ? `<button onclick="eliminarTicket(${t.id})">🗑</button>` : ""}
+            ${rol === "IT" ? `<button onclick="eliminarTicket('${t._id}')">🗑</button>` : ""}
           </td>
         `;
 
@@ -75,8 +74,10 @@ function cambiarEstado(id, estado) {
 
 function eliminarTicket(id) {
   if (!confirm("¿Eliminar ticket?")) return;
-  fetch(`/tickets/${id}`, { method: "DELETE" })
-    .then(cargarTickets);
+
+  fetch(`/tickets/${id}`, {
+    method: "DELETE"
+  }).then(cargarTickets);
 }
 
 function logout() {
