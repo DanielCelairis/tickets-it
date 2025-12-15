@@ -16,49 +16,45 @@
 </header>
 
 <main>
-  <h2>Resumen General</h2>
+  <h2>Resumen de Tickets Cerrados</h2>
 
   <div class="cards">
     <div class="card">
-      <h3>Total</h3>
-      <p id="total">0</p>
-    </div>
-
-    <div class="card">
-      <h3>Abiertos</h3>
-      <p id="abiertos">0</p>
-    </div>
-
-    <div class="card">
-      <h3>Cerrados</h3>
-      <p id="cerrados">0</p>
-    </div>
-
-    <div class="card">
-      <h3>Incidencias</h3>
-      <p id="incidencias">0</p>
-    </div>
-
-    <div class="card">
-      <h3>Requerimientos</h3>
-      <p id="requerimientos">0</p>
+      <h3>Total Cerrados</h3>
+      <p id="totalCerrados">0</p>
     </div>
   </div>
+
+  <h2>Detalle por Categoría</h2>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Categoría</th>
+        <th>Total Cerrados</th>
+      </tr>
+    </thead>
+    <tbody id="tablaCerrados"></tbody>
+  </table>
 </main>
 
 <script>
-fetch("/tickets")
+fetch("/reporte-cerrados")
   .then(res => res.json())
-  .then(tickets => {
-    document.getElementById("total").innerText = tickets.length;
-    document.getElementById("abiertos").innerText =
-      tickets.filter(t => t.estado === "Abierto").length;
-    document.getElementById("cerrados").innerText =
-      tickets.filter(t => t.estado === "Cerrado").length;
-    document.getElementById("incidencias").innerText =
-      tickets.filter(t => t.tipo === "Incidencia").length;
-    document.getElementById("requerimientos").innerText =
-      tickets.filter(t => t.tipo === "Requerimiento").length;
+  .then(data => {
+    document.getElementById("totalCerrados").innerText = data.totalCerrados;
+
+    const tbody = document.getElementById("tablaCerrados");
+    tbody.innerHTML = "";
+
+    Object.entries(data.porCategoria).forEach(([categoria, total]) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${categoria}</td>
+        <td><strong>${total}</strong></td>
+      `;
+      tbody.appendChild(tr);
+    });
   });
 </script>
 

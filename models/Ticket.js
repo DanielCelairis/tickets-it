@@ -7,11 +7,9 @@ const TicketSchema = new mongoose.Schema({
   estado: {
     type: String,
     default: "Abierto"
-  },
-  fecha: {
-    type: Date,
-    default: Date.now
   }
+}, {
+  timestamps: true
 });
 
 module.exports = mongoose.model("Ticket", TicketSchema);

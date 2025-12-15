@@ -187,3 +187,34 @@ button.delete {
   font-size: 34px;
   font-weight: bold;
 }
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+th, td {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+th {
+  background: #f4f6fa;
+  text-align: left;
+}
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin: 20px 0;
+}
+
+.card {
+  background: linear-gradient(135deg, #2563eb, #6d28d9);
+  color: white;
+  padding: 20px;
+  border-radius: 14px;
+  text-align: center;
+}
