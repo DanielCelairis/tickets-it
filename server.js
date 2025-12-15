@@ -1,98 +1,58 @@
-const mongoose = require("mongoose");
+require("dotenv").config();
 const express = require("express");
+const mongoose = require("mongoose");
 const fs = require("fs");
 const path = require("path");
-const USERS_FILE = path.join(__dirname, "users.json");
+const Ticket = require("./models/Ticket");
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
-const FILE = path.join(__dirname, "tickets.json");
+// 🔌 Conexión Mongo
+mongoose.connect(process.env.MONGO_URL)
+  .then(() => console.log("✅ MongoDB conectado"))
+  .catch(err => console.error("❌ Mongo error:", err));
 
-// Obtener todos los tickets
-app.get("/tickets", (req, res) => {
-  const data = fs.readFileSync(FILE, "utf8");
-  res.json(JSON.parse(data));
+// Obtener tickets
+app.get("/tickets", async (req, res) => {
+  const tickets = await Ticket.find().sort({ fecha: -1 });
+  res.json(tickets);
 });
 
-// Crear un nuevo ticket
-app.post("/tickets", (req, res) => {
-  const tickets = JSON.parse(fs.readFileSync(FILE, "utf8"));
-
-  const nuevoTicket = {
-    id: Date.now(),
-    tipo: req.body.tipo,
-    categoria: req.body.categoria,
-    descripcion: req.body.descripcion,
-    estado: "Abierto",
-    fecha: new Date().toLocaleString()
-  };
-
-  tickets.push(nuevoTicket);
-  fs.writeFileSync(FILE, JSON.stringify(tickets, null, 2));
-
+// Crear ticket
+app.post("/tickets", async (req, res) => {
+  await Ticket.create(req.body);
   res.json({ ok: true });
 });
 
-// Cambiar estado de ticket
-app.post("/estado", (req, res) => {
-  const tickets = JSON.parse(fs.readFileSync(FILE, "utf8"));
-  const ticket = tickets.find(t => t.id === req.body.id);
-
-  if (ticket) {
-    ticket.estado = req.body.estado;
-    fs.writeFileSync(FILE, JSON.stringify(tickets, null, 2));
-  }
-
-  res.json({ ok: true });
-});
-
-// Descargar reporte en CSV
-app.get("/reporte", (req, res) => {
-  const tickets = JSON.parse(fs.readFileSync(FILE, "utf8"));
-
-  let csv = "ID,Tipo,Categoria,Descripcion,Estado,Fecha\n";
-  tickets.forEach(t => {
-    csv += `${t.id},${t.tipo},${t.categoria},"${t.descripcion}",${t.estado},${t.fecha}\n`;
+// Cambiar estado
+app.post("/estado", async (req, res) => {
+  await Ticket.findByIdAndUpdate(req.body.id, {
+    estado: req.body.estado
   });
-
-  res.header("Content-Type", "text/csv");
-  res.attachment("reporte_tickets.csv");
-  res.send(csv);
+  res.json({ ok: true });
 });
 
-// Login
+// Eliminar ticket
+app.delete("/tickets/:id", async (req, res) => {
+  await Ticket.findByIdAndDelete(req.params.id);
+  res.json({ ok: true });
+});
+
+// Login (sigue con JSON)
 app.post("/login", (req, res) => {
-  const users = JSON.parse(fs.readFileSync(USERS_FILE, "utf8"));
+  const users = JSON.parse(fs.readFileSync("users.json"));
   const user = users.find(
     u => u.usuario === req.body.usuario && u.password === req.body.password
   );
 
-  if (user) {
-    res.json({ ok: true, rol: user.rol });
-  } else {
-    res.json({ ok: false });
-  }
+  if (user) res.json({ ok: true, rol: user.rol });
+  else res.json({ ok: false });
 });
 
-app.delete("/tickets/:id", async (req, res) => {
-  try {
-    await Ticket.findByIdAndDelete(req.params.id);
-    res.json({ ok: true });
-  } catch (err) {
-    res.status(500).json({ ok: false });
-  }
-});
-
-// Iniciar servidor
 app.listen(PORT, () => {
   console.log(`Servidor activo en http://localhost:${PORT}`);
-
 });
-
-mongoose.connect(process.env.MONGO_URL)
-  .then(() => console.log("MongoDB conectado"))
-  .catch(err => console.error(err));

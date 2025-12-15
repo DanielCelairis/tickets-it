@@ -1,85 +1,41 @@
 <!DOCTYPE html>
-<button id="btnLogout" onclick="logout()" style="float:right;">
-  Cerrar sesión
-</button>
-
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <title>Sistema de Tickets IT</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f4f6f8;
-      padding: 30px;
-    }
-    h2 {
-      color: #2c3e50;
-    }
-    .box {
-      background: #ffffff;
-      padding: 20px;
-      max-width: 500px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    select, input, button {
-      width: 100%;
-      margin-top: 10px;
-      padding: 8px;
-    }
-    button {
-      background: #3498db;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #2980b9;
-    }
-    a {
-      display: block;
-      margin-top: 15px;
-    }
-  </style>
-  <script>
-  if (!localStorage.getItem("rol")) {
-    window.location.replace("/login.html");
-  }
-</script>
 </head>
 <body>
 
-  <div class="box">
-    <h2>📨 Sistema de Tickets IT</h2>
+<button onclick="logout()" style="float:right;">Cerrar sesión</button>
 
-    <label>Tipo</label>
-<form id="formTicket" onsubmit="crearTicket(event)">
-    <select id="tipo">
-      <option>Incidencia</option>
-      <option>Requerimiento</option>
-    </select>
+<h2>📨 Sistema de Tickets IT</h2>
 
-    <label>Categoría</label>
-    <select id="categoria">
-      <option>Desbloqueo de Usuario Isoft</option>
-      <option>Desbloqueo de Usuario EmeSmart</option>
-      <option>Reinicio de Coordenadas</option>
-      <option>Asignación de QR</option>
-      <option>Falla EmeSmart</option>
-      <option>Otras</option>
-    </select>
+<form id="formTicket">
+  <label>Tipo</label>
+  <select id="tipo">
+    <option value="Incidencia">Incidencia</option>
+    <option value="Requerimiento">Requerimiento</option>
+  </select>
 
-    <label>Descripción</label>
-    <input id="descripcion" placeholder="Describe el problema o solicitud">
+  <label>Categoría</label>
+  <select id="categoria">
+    <option>Desbloqueo de Usuario Isoft</option>
+    <option>Desbloqueo de Usuario EmeSmart</option>
+    <option>Reinicio de Coordenadas</option>
+    <option>Asignación de QR</option>
+    <option>Falla EmeSmart</option>
+    <option>Otras</option>
+  </select>
 
-    <button onclick="crearTicket()">Crear Ticket</button>
+  <label>Descripción</label>
+  <input id="descripcion" />
 
-    <a href="/reporte">📥 Descargar reporte (Excel)</a>
-    
-    <hr>
-<h3>📋 Tickets creados</h3>
-<table border="1" width="100%" id="tablaTickets">
+  <button type="submit">Crear Ticket</button>
+</form>
+
+<hr>
+
+<table border="1" width="100%">
   <thead>
     <tr>
       <th>Tipo</th>
@@ -89,18 +45,9 @@
       <th>Acciones</th>
     </tr>
   </thead>
-  <tbody></tbody>
+  <tbody id="tablaTickets"></tbody>
 </table>
-  </div>
 
-  <script src="script.js"></script>
-
-<script>
-  if (!localStorage.getItem("rol")) {
-    window.location = "/login.html";
-  }
-</script>
-
+<script src="script.js"></script>
 </body>
-
 </html>
