@@ -2,51 +2,55 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Sistema de Tickets IT</title>
+  <title>CELAIRIS SOLUTIONS | Tickets IT</title>
+  <link rel="stylesheet" href="styles/style.css">
 </head>
 <body>
 
-<button onclick="logout()" style="float:right;">Cerrar sesión</button>
+<header>
+  <div>
+    <h1>CELAIRIS SOLUTIONS</h1>
+    <span>Plataforma de Tickets IT</span>
+  </div>
+  <button onclick="logout()">Cerrar sesión</button>
+</header>
 
-<h2>📨 Sistema de Tickets IT</h2>
+<main>
+  <h2>Gestión de Tickets</h2>
 
-<form id="formTicket">
-  <label>Tipo</label>
-  <select id="tipo">
-    <option value="Incidencia">Incidencia</option>
-    <option value="Requerimiento">Requerimiento</option>
-  </select>
+  <form id="formTicket">
+    <select id="tipo">
+      <option value="Incidencia">Incidencia</option>
+      <option value="Requerimiento">Requerimiento</option>
+    </select>
 
-  <label>Categoría</label>
-  <select id="categoria">
-    <option>Desbloqueo de Usuario Isoft</option>
-    <option>Desbloqueo de Usuario EmeSmart</option>
-    <option>Reinicio de Coordenadas</option>
-    <option>Asignación de QR</option>
-    <option>Falla EmeSmart</option>
-    <option>Otras</option>
-  </select>
+    <select id="categoria">
+      <option>Desbloqueo de Usuario Isoft</option>
+      <option>Desbloqueo de Usuario EmeSmart</option>
+      <option>Reinicio de Coordenadas</option>
+      <option>Asignación de QR</option>
+      <option>Falla EmeSmart</option>
+      <option>Otras</option>
+    </select>
 
-  <label>Descripción</label>
-  <input id="descripcion" />
+    <input id="descripcion" placeholder="Descripción del ticket">
 
-  <button type="submit">Crear Ticket</button>
-</form>
+    <button type="submit">Crear</button>
+  </form>
 
-<hr>
-
-<table border="1" width="100%">
-  <thead>
-    <tr>
-      <th>Tipo</th>
-      <th>Categoría</th>
-      <th>Descripción</th>
-      <th>Estado</th>
-      <th>Acciones</th>
-    </tr>
-  </thead>
-  <tbody id="tablaTickets"></tbody>
-</table>
+  <table>
+    <thead>
+      <tr>
+        <th>Tipo</th>
+        <th>Categoría</th>
+        <th>Descripción</th>
+        <th>Estado</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="tablaTickets"></tbody>
+  </table>
+</main>
 
 <script src="script.js"></script>
 </body>
