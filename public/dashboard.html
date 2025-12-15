@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Dashboard | CELAIRIS SOLUTIONS</title>
+  <link rel="stylesheet" href="styles/style.css">
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>CELAIRIS SOLUTIONS</h1>
+    <span>Dashboard IT</span>
+  </div>
+  <button onclick="location.href='/'">Volver</button>
+</header>
+
+<main>
+  <h2>Resumen General</h2>
+
+  <div class="cards">
+    <div class="card">
+      <h3>Total</h3>
+      <p id="total">0</p>
+    </div>
+
+    <div class="card">
+      <h3>Abiertos</h3>
+      <p id="abiertos">0</p>
+    </div>
+
+    <div class="card">
+      <h3>Cerrados</h3>
+      <p id="cerrados">0</p>
+    </div>
+
+    <div class="card">
+      <h3>Incidencias</h3>
+      <p id="incidencias">0</p>
+    </div>
+
+    <div class="card">
+      <h3>Requerimientos</h3>
+      <p id="requerimientos">0</p>
+    </div>
+  </div>
+</main>
+
+<script>
+fetch("/tickets")
+  .then(res => res.json())
+  .then(tickets => {
+    document.getElementById("total").innerText = tickets.length;
+    document.getElementById("abiertos").innerText =
+      tickets.filter(t => t.estado === "Abierto").length;
+    document.getElementById("cerrados").innerText =
+      tickets.filter(t => t.estado === "Cerrado").length;
+    document.getElementById("incidencias").innerText =
+      tickets.filter(t => t.tipo === "Incidencia").length;
+    document.getElementById("requerimientos").innerText =
+      tickets.filter(t => t.tipo === "Requerimiento").length;
+  });
+</script>
+
+</body>
+</html>
