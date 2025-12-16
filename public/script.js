@@ -1,27 +1,15 @@
 const form = document.getElementById("formTicket");
-const rol = localStorage.getItem("rol");
-
-if (!rol) {
-  location.href = "/login.html";
-}
-
-const tipoInput = document.getElementById("tipo");
-const categoriaInput = document.getElementById("categoria");
-const descripcionInput = document.getElementById("descripcion");
 const tabla = document.getElementById("tablaTickets");
 
 // Crear ticket
 form.addEventListener("submit", e => {
   e.preventDefault();
 
-  const tipo = tipoInput.value;
-  const categoria = categoriaInput.value;
-  const descripcion = descripcionInput.value.trim();
+  const tipo = tipo.value;
+  const categoria = categoria.value;
+  const descripcion = descripcion.value.trim();
 
-  if (!descripcion) {
-    alert("Escribe una descripción");
-    return;
-  }
+  if (!descripcion) return alert("Descripción requerida");
 
   fetch("/tickets", {
     method: "POST",
@@ -42,23 +30,21 @@ function cargarTickets() {
 
       tickets.forEach(t => {
         const tr = document.createElement("tr");
-
         tr.innerHTML = `
           <td>${t.tipo}</td>
           <td>${t.categoria}</td>
           <td>${t.descripcion}</td>
           <td>
-            <select onchange="cambiarEstado('${t._id}', this.value)" ${rol !== "IT" ? "disabled" : ""}>
+            <select onchange="cambiarEstado('${t._id}', this.value)">
               <option ${t.estado === "Abierto" ? "selected" : ""}>Abierto</option>
               <option ${t.estado === "En Proceso" ? "selected" : ""}>En Proceso</option>
               <option ${t.estado === "Cerrado" ? "selected" : ""}>Cerrado</option>
             </select>
           </td>
           <td>
-            ${rol === "IT" ? `<button onclick="eliminarTicket('${t._id}')">🗑</button>` : ""}
+            <button onclick="eliminarTicket('${t._id}')">🗑</button>
           </td>
         `;
-
         tabla.appendChild(tr);
       });
     });
@@ -74,15 +60,13 @@ function cambiarEstado(id, estado) {
 
 function eliminarTicket(id) {
   if (!confirm("¿Eliminar ticket?")) return;
-
-  fetch(`/tickets/${id}`, {
-    method: "DELETE"
-  }).then(cargarTickets);
+  fetch(`/tickets/${id}`, { method: "DELETE" })
+    .then(cargarTickets);
 }
 
 function logout() {
-  localStorage.clear();
-  location.href = "/login.html";
+  fetch("/logout", { method: "POST" })
+    .then(() => location.href = "/login.html");
 }
 
 window.onload = cargarTickets;

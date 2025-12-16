@@ -30,7 +30,6 @@ function login() {
   .then(res => res.json())
   .then(data => {
     if (data.ok) {
-      localStorage.setItem("rol", data.rol);
       location.href = "/";
     } else {
       msg.innerText = "Credenciales incorrectas";

@@ -2,14 +2,32 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const path = require("path");
+const fs = require("fs");
 
 const Ticket = require("./models/Ticket");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// =====================
+// MIDDLEWARES
+// =====================
 app.use(express.json());
-app.use(express.static(path.join(__dirname, "public")));
+app.use(express.urlencoded({ extended: true }));
+
+// Cookies simples (sin librería)
+app.use((req, res, next) => {
+  const cookies = {};
+  const raw = req.headers.cookie;
+  if (raw) {
+    raw.split(";").forEach(c => {
+      const [k, v] = c.trim().split("=");
+      cookies[k] = v;
+    });
+  }
+  req.cookies = cookies;
+  next();
+});
 
 // =====================
 // CONEXIÓN MONGODB
@@ -19,39 +37,96 @@ mongoose.connect(process.env.MONGO_URL)
   .catch(err => console.error("❌ Error MongoDB:", err));
 
 // =====================
+// AUTH
+// =====================
+const users = JSON.parse(fs.readFileSync("./users.json"));
+
+app.post("/login", (req, res) => {
+  const { usuario, password } = req.body;
+
+  const user = users.find(
+    u => u.usuario === usuario && u.password === password
+  );
+
+  if (!user) {
+    return res.json({ ok: false });
+  }
+
+  res.setHeader(
+    "Set-Cookie",
+    `rol=${user.rol}; HttpOnly; Path=/`
+  );
+
+  res.json({ ok: true, rol: user.rol });
+});
+
+app.post("/logout", (req, res) => {
+  res.setHeader("Set-Cookie", "rol=; Max-Age=0; Path=/");
+  res.json({ ok: true });
+});
+
+// =====================
+// PROTECCIÓN
+// =====================
+function auth(req, res, next) {
+  if (!req.cookies.rol) {
+    return res.redirect("/login.html");
+  }
+  next();
+}
+
+function onlyIT(req, res, next) {
+  if (req.cookies.rol !== "IT") {
+    return res.status(403).json({ error: "No autorizado" });
+  }
+  next();
+}
+
+// =====================
+// ARCHIVOS PÚBLICOS
+// =====================
+app.use(express.static(path.join(__dirname, "public")));
+
+app.get("/", auth, (req, res) => {
+  res.sendFile(path.join(__dirname, "public/index.html"));
+});
+
+app.get("/dashboard.html", auth, (req, res) => {
+  if (req.cookies.rol !== "IT") {
+    return res.redirect("/");
+  }
+  res.sendFile(path.join(__dirname, "public/dashboard.html"));
+});
+
+// =====================
 // TICKETS
 // =====================
-app.get("/tickets", async (req, res) => {
+app.get("/tickets", auth, async (req, res) => {
   const tickets = await Ticket.find().sort({ createdAt: -1 });
   res.json(tickets);
 });
 
-app.post("/tickets", async (req, res) => {
-  const ticket = new Ticket({
-    tipo: req.body.tipo,
-    categoria: req.body.categoria,
-    descripcion: req.body.descripcion
-  });
-  await ticket.save();
+app.post("/tickets", auth, async (req, res) => {
+  await Ticket.create(req.body);
   res.json({ ok: true });
 });
 
-app.post("/estado", async (req, res) => {
+app.post("/estado", auth, onlyIT, async (req, res) => {
   await Ticket.findByIdAndUpdate(req.body.id, {
-    estado: req.body.estado
+    estado: req.body.estado.trim()
   });
   res.json({ ok: true });
 });
 
-app.delete("/tickets/:id", async (req, res) => {
+app.delete("/tickets/:id", auth, onlyIT, async (req, res) => {
   await Ticket.findByIdAndDelete(req.params.id);
   res.json({ ok: true });
 });
 
 // =====================
-// REPORTE CERRADOS POR MES
+// REPORTE
 // =====================
-app.get("/reporte-cerrados", async (req, res) => {
+app.get("/reporte-cerrados", auth, onlyIT, async (req, res) => {
   const { mes, anio } = req.query;
 
   const inicio = new Date(anio, mes - 1, 1);
