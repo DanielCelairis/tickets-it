@@ -5,20 +5,29 @@ const tabla = document.getElementById("tablaTickets");
 form.addEventListener("submit", e => {
   e.preventDefault();
 
-  const tipo = tipo.value;
-  const categoria = categoria.value;
-  const descripcion = descripcion.value.trim();
+  const tipoEl = document.getElementById("tipo");
+  const categoriaEl = document.getElementById("categoria");
+  const descripcionEl = document.getElementById("descripcion");
 
-  if (!descripcion) return alert("Descripción requerida");
+  const tipo = tipoEl.value;
+  const categoria = categoriaEl.value;
+  const descripcion = descripcionEl.value.trim();
+
+  if (!descripcion) {
+    alert("Descripción requerida");
+    return;
+  }
 
   fetch("/tickets", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ tipo, categoria, descripcion })
-  }).then(() => {
-    form.reset();
-    cargarTickets();
-  });
+  })
+    .then(res => res.json())
+    .then(() => {
+      form.reset();
+      cargarTickets();
+    });
 });
 
 // Cargar tickets
@@ -36,9 +45,9 @@ function cargarTickets() {
           <td>${t.descripcion}</td>
           <td>
             <select onchange="cambiarEstado('${t._id}', this.value)">
-              <option ${t.estado === "Abierto" ? "selected" : ""}>Abierto</option>
-              <option ${t.estado === "En Proceso" ? "selected" : ""}>En Proceso</option>
-              <option ${t.estado === "Cerrado" ? "selected" : ""}>Cerrado</option>
+              <option value="Abierto" ${t.estado === "Abierto" ? "selected" : ""}>Abierto</option>
+              <option value="En Proceso" ${t.estado === "En Proceso" ? "selected" : ""}>En Proceso</option>
+              <option value="Cerrado" ${t.estado === "Cerrado" ? "selected" : ""}>Cerrado</option>
             </select>
           </td>
           <td>
@@ -60,6 +69,7 @@ function cambiarEstado(id, estado) {
 
 function eliminarTicket(id) {
   if (!confirm("¿Eliminar ticket?")) return;
+
   fetch(`/tickets/${id}`, { method: "DELETE" })
     .then(cargarTickets);
 }
