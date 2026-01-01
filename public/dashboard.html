@@ -35,12 +35,15 @@
     </select>
 
     <select id="anio">
-      <option>2024</option>
       <option selected>2025</option>
       <option>2026</option>
     </select>
 
     <button onclick="cargarReporte()">Consultar</button>
+  <button onclick="exportarCSV()">Exportar CSV</button>
+  <button onclick="eliminarCerrados()" style="background:#dc2626;color:white;">
+    Eliminar Cerrados
+  </button>
   </div>
 
   <div class="cards">
@@ -83,6 +86,34 @@ function cargarReporte() {
       });
     });
 }
+
+function exportarCSV() {
+  const mes = document.getElementById("mes").value;
+  const anio = document.getElementById("anio").value;
+
+  window.location.href = `/exportar-csv?mes=${mes}&anio=${anio}`;
+}
+
+function eliminarCerrados() {
+  const mes = document.getElementById("mes").value;
+  const anio = document.getElementById("anio").value;
+
+  if (!confirm("⚠️ Esto eliminará TODOS los tickets cerrados de este mes.\n¿Continuar?")) {
+    return;
+  }
+
+  fetch("/eliminar-cerrados", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mes, anio })
+  })
+    .then(res => res.json())
+    .then(data => {
+      alert(`✅ Tickets eliminados: ${data.eliminados}`);
+      cargarReporte();
+    });
+}
+
 </script>
 
 </body>

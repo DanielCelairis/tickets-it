@@ -148,6 +148,49 @@ app.get("/reporte-cerrados", auth, onlyIT, async (req, res) => {
   });
 });
 
+app.get("/exportar-csv", auth, onlyIT, async (req, res) => {
+  const { mes, anio } = req.query;
+
+  const inicio = new Date(anio, mes - 1, 1);
+  const fin = new Date(anio, mes, 0, 23, 59, 59);
+
+  const tickets = await Ticket.find({
+    estado: "Cerrado",
+    createdAt: { $gte: inicio, $lte: fin }
+  });
+
+  let csv = "Tipo,Categoria,Descripcion,Estado,Fecha\n";
+
+  tickets.forEach(t => {
+    csv += `"${t.tipo}","${t.categoria}","${t.descripcion}","${t.estado}","${t.createdAt.toISOString()}"\n`;
+  });
+
+  res.setHeader("Content-Type", "text/csv");
+  res.setHeader(
+    "Content-Disposition",
+    `attachment; filename="tickets-cerrados-${mes}-${anio}.csv"`
+  );
+
+  res.send(csv);
+});
+
+app.delete("/eliminar-cerrados", auth, onlyIT, async (req, res) => {
+  const { mes, anio } = req.body;
+
+  const inicio = new Date(anio, mes - 1, 1);
+  const fin = new Date(anio, mes, 0, 23, 59, 59);
+
+  const result = await Ticket.deleteMany({
+    estado: "Cerrado",
+    createdAt: { $gte: inicio, $lte: fin }
+  });
+
+  res.json({
+    ok: true,
+    eliminados: result.deletedCount
+  });
+});
+
 // =====================
 app.listen(PORT, () => {
   console.log(`🚀 Servidor activo en http://localhost:${PORT}`);
