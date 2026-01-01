@@ -1,0 +1,118 @@
+:root {
+  --azul: #1e40af;
+  --morado: #6366f1;
+  --blanco: #ffffff;
+  --gris: #f3f4f6;
+  --oscuro: #0f172a;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: "Segoe UI", sans-serif;
+}
+
+body {
+  margin: 0;
+  background: var(--gris);
+  color: var(--oscuro);
+}
+
+/* TOPBAR */
+.topbar {
+  background: linear-gradient(90deg, var(--azul), var(--morado));
+  color: white;
+  padding: 15px 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.brand img {
+  height: 45px;
+}
+
+.topbar button {
+  background: white;
+  color: var(--azul);
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+/* MAIN */
+.container {
+  padding: 30px;
+}
+
+/* FILTROS */
+.filters {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 25px;
+}
+
+.filters select,
+.filters button {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
+
+.filters .danger {
+  background: #dc2626;
+  color: white;
+  border: none;
+}
+
+/* KPIs */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.kpi {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.kpi h3 {
+  margin: 0;
+  color: var(--morado);
+}
+
+.kpi p {
+  font-size: 36px;
+  margin: 10px 0 0;
+}
+
+/* CHARTS */
+.charts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 25px;
+}
+
+.chart-card {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+.chart-card h3 {
+  margin-bottom: 15px;
+  color: var(--azul);
+}

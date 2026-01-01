@@ -1,82 +1,197 @@
-const form = document.getElementById("formTicket");
-const tabla = document.getElementById("tablaTickets");
+// =============================
+// CONFIG FECHAS
+// =============================
+const meses = [
+  "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+  "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+];
 
-// Crear ticket
-form.addEventListener("submit", e => {
-  e.preventDefault();
+const mesSelect = document.getElementById("mes");
+const anioSelect = document.getElementById("anio");
 
-  const tipoEl = document.getElementById("tipo");
-  const categoriaEl = document.getElementById("categoria");
-  const descripcionEl = document.getElementById("descripcion");
+const hoy = new Date();
+const anioActual = hoy.getFullYear();
 
-  const tipo = tipoEl.value;
-  const categoria = categoriaEl.value;
-  const descripcion = descripcionEl.value.trim();
+// Cargar meses
+meses.forEach((m, i) => {
+  const opt = document.createElement("option");
+  opt.value = i + 1;
+  opt.textContent = m;
+  if (i === hoy.getMonth()) opt.selected = true;
+  mesSelect.appendChild(opt);
+});
 
-  if (!descripcion) {
-    alert("Descripción requerida");
+// Cargar años
+for (let a = anioActual - 2; a <= anioActual + 1; a++) {
+  const opt = document.createElement("option");
+  opt.value = a;
+  opt.textContent = a;
+  if (a === anioActual) opt.selected = true;
+  anioSelect.appendChild(opt);
+}
+
+// =============================
+// VARIABLES GRÁFICOS
+// =============================
+let chartEstado = null;
+let chartCategorias = null;
+
+// =============================
+// CARGAR DASHBOARD
+// =============================
+async function cargarDashboard() {
+  const res = await fetch("/tickets");
+  const tickets = await res.json();
+
+  const mes = Number(mesSelect.value);
+  const anio = Number(anioSelect.value);
+
+  let total = 0;
+  let abiertos = 0;
+  let cerrados = 0;
+
+  const resumenCategorias = {};
+
+  const tbody = document.getElementById("tabla");
+  tbody.innerHTML = "";
+
+  tickets.forEach(t => {
+    const fecha = new Date(t.createdAt);
+
+    if (
+      fecha.getMonth() + 1 !== mes ||
+      fecha.getFullYear() !== anio
+    ) return;
+
+    total++;
+
+    if (t.estado === "Cerrado") {
+      cerrados++;
+      resumenCategorias[t.categoria] =
+        (resumenCategorias[t.categoria] || 0) + 1;
+    } else {
+      abiertos++;
+    }
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${t.tipo}</td>
+      <td>${t.categoria}</td>
+      <td>${t.descripcion}</td>
+      <td>
+        <span class="estado ${t.estado === "Cerrado" ? "cerrado" : "abierto"}">
+          ${t.estado}
+        </span>
+      </td>
+      <td>${fecha.toLocaleDateString()}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById("total").innerText = total;
+  document.getElementById("abiertos").innerText = abiertos;
+  document.getElementById("cerrados").innerText = cerrados;
+
+  renderCharts(abiertos, cerrados, resumenCategorias);
+}
+
+// =============================
+// RENDER GRÁFICOS
+// =============================
+function renderCharts(abiertos, cerrados, porCategoria) {
+
+  // --- GRÁFICO ESTADO ---
+  if (chartEstado) chartEstado.destroy();
+
+  chartEstado = new Chart(
+    document.getElementById("chartEstado"),
+    {
+      type: "doughnut",
+      data: {
+        labels: ["Abiertos", "Cerrados"],
+        datasets: [{
+          data: [abiertos, cerrados],
+          backgroundColor: ["#6366f1", "#1e40af"]
+        }]
+      },
+      options: {
+        plugins: {
+          legend: {
+            position: "bottom"
+          }
+        }
+      }
+    }
+  );
+
+  // --- GRÁFICO CATEGORÍAS ---
+  if (chartCategorias) chartCategorias.destroy();
+
+  chartCategorias = new Chart(
+    document.getElementById("chartCategorias"),
+    {
+      type: "bar",
+      data: {
+        labels: Object.keys(porCategoria),
+        datasets: [{
+          label: "Tickets Cerrados",
+          data: Object.values(porCategoria),
+          backgroundColor: "#1e40af"
+        }]
+      },
+      options: {
+        plugins: {
+          legend: { display: false }
+        }
+      }
+    }
+  );
+}
+
+// =============================
+// EXPORTAR CSV
+// =============================
+function exportar() {
+  const mes = mesSelect.value;
+  const anio = anioSelect.value;
+  window.location.href = `/exportar-csv?mes=${mes}&anio=${anio}`;
+}
+
+// =============================
+// ELIMINAR CERRADOS
+// =============================
+async function eliminar() {
+  const mes = mesSelect.value;
+  const anio = anioSelect.value;
+
+  if (!confirm("⚠️ Se eliminarán TODOS los tickets cerrados del mes.\n¿Continuar?")) {
     return;
   }
 
-  fetch("/tickets", {
-    method: "POST",
+  const res = await fetch("/eliminar-cerrados", {
+    method: "DELETE",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ tipo, categoria, descripcion })
-  })
-    .then(res => res.json())
-    .then(() => {
-      form.reset();
-      cargarTickets();
-    });
-});
+    body: JSON.stringify({ mes, anio })
+  });
 
-// Cargar tickets
-function cargarTickets() {
-  fetch("/tickets")
-    .then(res => res.json())
-    .then(tickets => {
-      tabla.innerHTML = "";
-
-      tickets.forEach(t => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${t.tipo}</td>
-          <td>${t.categoria}</td>
-          <td>${t.descripcion}</td>
-          <td>
-            <select onchange="cambiarEstado('${t._id}', this.value)">
-              <option value="Abierto" ${t.estado === "Abierto" ? "selected" : ""}>Abierto</option>
-              <option value="En Proceso" ${t.estado === "En Proceso" ? "selected" : ""}>En Proceso</option>
-              <option value="Cerrado" ${t.estado === "Cerrado" ? "selected" : ""}>Cerrado</option>
-            </select>
-          </td>
-          <td>
-            <button onclick="eliminarTicket('${t._id}')">🗑</button>
-          </td>
-        `;
-        tabla.appendChild(tr);
-      });
-    });
+  const data = await res.json();
+  alert(`✅ Eliminados: ${data.eliminados}`);
+  cargarDashboard();
 }
 
-function cambiarEstado(id, estado) {
-  fetch("/estado", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id, estado })
-  }).then(cargarTickets);
+// =============================
+// LOGOUT
+// =============================
+async function logout() {
+  await fetch("/logout", { method: "POST" });
+  location.href = "/login.html";
 }
 
-function eliminarTicket(id) {
-  if (!confirm("¿Eliminar ticket?")) return;
+// =============================
+// EVENTOS
+// =============================
+mesSelect.addEventListener("change", cargarDashboard);
+anioSelect.addEventListener("change", cargarDashboard);
 
-  fetch(`/tickets/${id}`, { method: "DELETE" })
-    .then(cargarTickets);
-}
-
-function logout() {
-  fetch("/logout", { method: "POST" })
-    .then(() => location.href = "/login.html");
-}
-
-window.onload = cargarTickets;
+// INIT
+cargarDashboard();

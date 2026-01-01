@@ -1,0 +1,164 @@
+:root {
+  --negro: #000000;
+  --fondo: #0f172a;
+  --panel: #111827;
+  --azul: #0d6efd;
+  --azul-claro: #4fd1c5;
+  --morado: #6c63ff;
+  --blanco: #ffffff;
+  --gris: #9ca3af;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+body {
+  background: linear-gradient(180deg, #020617, #020617);
+  color: var(--blanco);
+  min-height: 100vh;
+}
+
+/* HEADER */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 40px;
+  background: #020617;
+  border-bottom: 1px solid #1f2937;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.logo img {
+  height: 48px;
+}
+
+.logo h1 {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.logo span {
+  color: var(--azul);
+}
+
+.logout {
+  background: transparent;
+  color: var(--gris);
+  border: 1px solid #1f2937;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.logout:hover {
+  color: var(--blanco);
+  border-color: var(--azul);
+}
+
+/* CONTENEDOR */
+.container {
+  padding: 40px;
+}
+
+/* MÉTRICAS */
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.card {
+  background: linear-gradient(180deg, #020617, #020617);
+  border: 1px solid #1f2937;
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.card h3 {
+  font-size: 14px;
+  color: var(--gris);
+}
+
+.card p {
+  font-size: 36px;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.card.azul p { color: var(--azul); }
+.card.morado p { color: var(--morado); }
+.card.verde p { color: var(--azul-claro); }
+
+/* FILTRO */
+.filter {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+select, button {
+  background: #020617;
+  color: var(--blanco);
+  border: 1px solid #1f2937;
+  padding: 10px 14px;
+  border-radius: 8px;
+}
+
+button.primary {
+  background: var(--azul);
+  border: none;
+}
+
+button.danger {
+  background: #991b1b;
+  border: none;
+}
+
+button:hover {
+  opacity: 0.9;
+}
+
+/* TABLA */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+th, td {
+  padding: 14px;
+  border-bottom: 1px solid #1f2937;
+  text-align: left;
+}
+
+th {
+  color: var(--gris);
+  font-weight: 500;
+}
+
+.estado {
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.abierto {
+  background: #1e293b;
+  color: #38bdf8;
+}
+
+.cerrado {
+  background: #022c22;
+  color: #34d399;
+}

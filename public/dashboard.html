@@ -2,119 +2,69 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Dashboard | CELAIRIS SOLUTIONS</title>
-  <link rel="stylesheet" href="styles/style.css">
+  <title>Dashboard IT | CELAIRIS SOLUTIONS</title>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <link rel="stylesheet" href="styles/dashboard.css">
 </head>
 <body>
 
-<header>
-  <div>
-    <h1>CELAIRIS SOLUTIONS</h1>
-    <span>Dashboard IT</span>
-  </div>
-  <button onclick="location.href='/'">Volver</button>
-</header>
-
-<main>
-  <h2>Reporte Mensual de Tickets Cerrados</h2>
-
-  <div class="filtros">
-    <select id="mes">
-      <option value="1">Enero</option>
-      <option value="2">Febrero</option>
-      <option value="3">Marzo</option>
-      <option value="4">Abril</option>
-      <option value="5">Mayo</option>
-      <option value="6">Junio</option>
-      <option value="7">Julio</option>
-      <option value="8">Agosto</option>
-      <option value="9">Septiembre</option>
-      <option value="10">Octubre</option>
-      <option value="11">Noviembre</option>
-      <option value="12">Diciembre</option>
-    </select>
-
-    <select id="anio">
-      <option selected>2025</option>
-      <option>2026</option>
-    </select>
-
-    <button onclick="cargarReporte()">Consultar</button>
-  <button onclick="exportarCSV()">Exportar CSV</button>
-  <button onclick="eliminarCerrados()" style="background:#dc2626;color:white;">
-    Eliminar Cerrados
-  </button>
-  </div>
-
-  <div class="cards">
-    <div class="card">
-      <h3>Total Cerrados</h3>
-      <p id="totalCerrados">0</p>
+<header class="topbar">
+  <div class="brand">
+    <img src="logo.png" alt="Celairis" />
+    <div>
+      <h1>CELAIRIS SOLUTIONS</h1>
+      <span>Dashboard IT</span>
     </div>
   </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Categoría</th>
-        <th>Total Cerrados</th>
-      </tr>
-    </thead>
-    <tbody id="tablaCerrados"></tbody>
-  </table>
+  <button onclick="logout()">Cerrar sesión</button>
+</header>
+
+<main class="container">
+
+  <!-- FILTROS -->
+  <section class="filters">
+    <select id="mes"></select>
+    <select id="anio"></select>
+    <button onclick="cargarDashboard()">Consultar</button>
+    <button onclick="exportar()">Exportar CSV</button>
+    <button class="danger" onclick="eliminar()">Eliminar Cerrados</button>
+  </section>
+
+  <!-- KPIs -->
+  <section class="kpis">
+    <div class="kpi">
+      <h3>Total</h3>
+      <p id="total">0</p>
+    </div>
+    <div class="kpi">
+      <h3>Abiertos</h3>
+      <p id="abiertos">0</p>
+    </div>
+    <div class="kpi">
+      <h3>Cerrados</h3>
+      <p id="cerrados">0</p>
+    </div>
+  </section>
+
+  <!-- GRAFICOS -->
+  <section class="charts">
+    <div class="chart-card">
+      <h3>Estado de Tickets</h3>
+      <canvas id="chartEstado"></canvas>
+    </div>
+
+    <div class="chart-card">
+      <h3>Cerrados por Categoría</h3>
+      <canvas id="chartCategorias"></canvas>
+    </div>
+  </section>
+
 </main>
 
-<script>
-function cargarReporte() {
-  const mes = document.getElementById("mes").value;
-  const anio = document.getElementById("anio").value;
-
-  fetch(`/reporte-cerrados?mes=${mes}&anio=${anio}`)
-    .then(res => res.json())
-    .then(data => {
-      document.getElementById("totalCerrados").innerText = data.totalCerrados;
-      const tbody = document.getElementById("tablaCerrados");
-      tbody.innerHTML = "";
-
-      Object.entries(data.porCategoria).forEach(([categoria, total]) => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${categoria}</td>
-          <td><strong>${total}</strong></td>
-        `;
-        tbody.appendChild(tr);
-      });
-    });
-}
-
-function exportarCSV() {
-  const mes = document.getElementById("mes").value;
-  const anio = document.getElementById("anio").value;
-
-  window.location.href = `/exportar-csv?mes=${mes}&anio=${anio}`;
-}
-
-function eliminarCerrados() {
-  const mes = document.getElementById("mes").value;
-  const anio = document.getElementById("anio").value;
-
-  if (!confirm("⚠️ Esto eliminará TODOS los tickets cerrados de este mes.\n¿Continuar?")) {
-    return;
-  }
-
-  fetch("/eliminar-cerrados", {
-    method: "DELETE",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ mes, anio })
-  })
-    .then(res => res.json())
-    .then(data => {
-      alert(`✅ Tickets eliminados: ${data.eliminados}`);
-      cargarReporte();
-    });
-}
-
-</script>
-
+<script src="script.js"></script>
 </body>
 </html>
