@@ -76,7 +76,12 @@ function onlyIT(req, res, next) {
 // =====================
 // PUBLIC
 // =====================
-app.use(express.static(path.join(__dirname, "public")));
+app.use("/login.html", express.static(path.join(__dirname, "public/login.html")));
+app.use("/css", express.static(path.join(__dirname, "public/css")));
+app.use("/styles", express.static(path.join(__dirname, "public/styles")));
+app.use("/img", express.static(path.join(__dirname, "public/img")));
+app.use("/tickets.js", express.static(path.join(__dirname, "public/tickets.js")));
+app.use("/dashboard.js", express.static(path.join(__dirname, "public/dashboard.js")));
 
 app.get("/", auth, (req, res) =>
   res.sendFile(path.join(__dirname, "public/index.html"))
