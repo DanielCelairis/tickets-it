@@ -19,12 +19,15 @@
 <main>
   <h2>Reporte mensual de tickets cerrados</h2>
 
-  <div class="filtros">
-    <select id="mes"></select>
-    <select id="anio"></select>
-    <button onclick="consultar()">Consultar</button>
-    <button onclick="exportar()">Exportar CSV</button>
-  </div>
+ <div class="filtros">
+  <select id="mes"></select>
+  <select id="anio"></select>
+  <button onclick="consultar()">Consultar</button>
+  <button onclick="exportar()">Exportar CSV</button>
+  <button onclick="eliminarMasivo()" style="background:#dc2626">
+    Eliminar mes
+  </button>
+</div>
 
   <div class="cards">
     <div class="card">

@@ -52,3 +52,27 @@ async function logout() {
 }
 
 consultar();
+
+async function eliminarMasivo() {
+  const mes = mesSelect.value;
+  const anio = anioSelect.value;
+
+  if (!confirm(`⚠️ ATENCIÓN\n\nSe eliminarán TODOS los tickets del mes ${mes}/${anio}.\n\n¿Deseas continuar?`)) {
+    return;
+  }
+
+  const res = await fetch(`/tickets-masivo?mes=${mes}&anio=${anio}`, {
+    method: "DELETE"
+  });
+
+  if (!res.ok) {
+    alert("❌ No autorizado o error");
+    return;
+  }
+
+  const data = await res.json();
+
+  alert(`✅ Tickets eliminados: ${data.eliminados}`);
+
+  consultar();
+}

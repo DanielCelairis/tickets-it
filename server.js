@@ -167,3 +167,26 @@ app.get("/exportar-csv", auth, onlyIT, async (req, res) => {
 app.listen(PORT, () => {
   console.log(`🚀 Servidor activo en puerto ${PORT}`);
 });
+
+// =====================
+// ELIMINACIÓN MASIVA (SOLO IT)
+// =====================
+app.delete("/tickets-masivo", auth, onlyIT, async (req, res) => {
+  const { mes, anio } = req.query;
+
+  if (!mes || !anio) {
+    return res.status(400).json({ error: "Mes y año requeridos" });
+  }
+
+  const inicio = new Date(anio, mes - 1, 1);
+  const fin = new Date(anio, mes, 0, 23, 59, 59);
+
+  const resultado = await Ticket.deleteMany({
+    createdAt: { $gte: inicio, $lte: fin }
+  });
+
+  res.json({
+    ok: true,
+    eliminados: resultado.deletedCount
+  });
+});
