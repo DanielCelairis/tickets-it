@@ -104,7 +104,7 @@ app.post("/tickets", auth, async (req, res) => {
   res.json({ ok: true });
 });
 
-app.post("/estado", auth, onlyIT, async (req, res) => {
+app.post("/estado", auth, async (req, res) => {
   await Ticket.findByIdAndUpdate(req.body.id, {
     estado: req.body.estado
   });

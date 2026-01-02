@@ -28,11 +28,15 @@ async function cargarTickets() {
 }
 
 async function cambiarEstado(id, estado) {
-  await fetch("/estado", {
+  const res = await fetch("/estado", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ id, estado })
   });
+
+  if (!res.ok) {
+    alert("❌ No tienes permisos para cambiar el estado");
+  }
 }
 
 async function eliminarTicket(id) {
