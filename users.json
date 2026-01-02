@@ -1,10 +1,10 @@
 [
   {
-    "id": 1,
-    "usuario": "it",
-    "password": "1234",
+   "usuario": "admin",
+    "password": "Cam01bio",
     "rol": "IT"
-  },
+  }
+
   {
     "id": 2,
     "usuario": "usuario",

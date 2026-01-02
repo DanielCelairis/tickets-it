@@ -3,26 +3,26 @@ async function cargarTickets() {
   const tickets = await res.json();
 
   const tbody = document.getElementById("tablaTickets");
-  if (!tbody) return;
-
   tbody.innerHTML = "";
 
   tickets.forEach(t => {
     const tr = document.createElement("tr");
+
     tr.innerHTML = `
       <td>${t.tipo}</td>
       <td>${t.categoria}</td>
       <td>${t.descripcion}</td>
       <td>
         <select onchange="cambiarEstado('${t._id}', this.value)">
-          <option ${t.estado === "Abierto" ? "selected" : ""}>Abierto</option>
-          <option ${t.estado === "Cerrado" ? "selected" : ""}>Cerrado</option>
+          <option value="Abierto" ${t.estado === "Abierto" ? "selected" : ""}>Abierto</option>
+          <option value="Cerrado" ${t.estado === "Cerrado" ? "selected" : ""}>Cerrado</option>
         </select>
       </td>
       <td>
-        <button onclick="eliminarTicket('${t._id}')">🗑</button>
+        <button class="delete" onclick="eliminarTicket('${t._id}')">🗑️</button>
       </td>
     `;
+
     tbody.appendChild(tr);
   });
 }
@@ -35,15 +35,30 @@ async function cambiarEstado(id, estado) {
   });
 
   if (!res.ok) {
-    alert("❌ No tienes permisos para cambiar el estado");
+    const txt = await res.text();
+    console.error("Error estado:", txt);
+    alert("❌ No autorizado para cambiar estado");
+    return;
   }
+
+  cargarTickets();
 }
 
 async function eliminarTicket(id) {
-  if (!confirm("¿Eliminar ticket?")) return;
-  await fetch(`/tickets/${id}`, { method: "DELETE" });
+  if (!confirm("¿Eliminar este ticket?")) return;
+
+  const res = await fetch(`/tickets/${id}`, {
+    method: "DELETE"
+  });
+
+  if (!res.ok) {
+    alert("❌ No autorizado");
+    return;
+  }
+
   cargarTickets();
 }
+
 
 document.getElementById("formTicket")?.addEventListener("submit", async e => {
   e.preventDefault();
