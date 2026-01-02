@@ -104,13 +104,15 @@ app.post("/tickets", auth, async (req, res) => {
   res.json({ ok: true });
 });
 
-app.post("/estado", auth, async (req, res) => {
+// 🔐 SOLO IT PUEDE CAMBIAR ESTADO
+app.post("/estado", auth, onlyIT, async (req, res) => {
   await Ticket.findByIdAndUpdate(req.body.id, {
     estado: req.body.estado
   });
   res.json({ ok: true });
 });
 
+// 🗑️ SOLO IT PUEDE ELIMINAR
 app.delete("/tickets/:id", auth, onlyIT, async (req, res) => {
   await Ticket.findByIdAndDelete(req.params.id);
   res.json({ ok: true });
@@ -163,5 +165,5 @@ app.get("/exportar-csv", auth, onlyIT, async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor activo en http://localhost:${PORT}`);
+  console.log(`🚀 Servidor activo en puerto ${PORT}`);
 });
