@@ -1,71 +1,66 @@
-// =============================
-// FECHAS
-// =============================
-const meses = [
-  "Enero","Febrero","Marzo","Abril","Mayo","Junio",
-  "Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"
-];
+async function cargarTickets() {
+  const res = await fetch("/tickets");
+  const tickets = await res.json();
 
-const mesSelect = document.getElementById("mes");
-const anioSelect = document.getElementById("anio");
+  const tbody = document.getElementById("tablaTickets");
+  if (!tbody) return;
 
-const hoy = new Date();
-const anioActual = hoy.getFullYear();
-
-meses.forEach((m, i) => {
-  const opt = document.createElement("option");
-  opt.value = i + 1;
-  opt.textContent = m;
-  if (i === hoy.getMonth()) opt.selected = true;
-  mesSelect.appendChild(opt);
-});
-
-for (let a = anioActual - 1; a <= anioActual + 1; a++) {
-  const opt = document.createElement("option");
-  opt.value = a;
-  opt.textContent = a;
-  if (a === anioActual) opt.selected = true;
-  anioSelect.appendChild(opt);
-}
-
-// =============================
-// CONSULTAR REPORTE
-// =============================
-async function consultar() {
-  const mes = mesSelect.value;
-  const anio = anioSelect.value;
-
-  const res = await fetch(`/reporte-cerrados?mes=${mes}&anio=${anio}`);
-  const data = await res.json();
-
-  document.getElementById("totalCerrados").innerText = data.totalCerrados;
-
-  const tbody = document.getElementById("tablaCerrados");
   tbody.innerHTML = "";
 
-  Object.entries(data.porCategoria).forEach(([cat, total]) => {
+  tickets.forEach(t => {
     const tr = document.createElement("tr");
-    tr.innerHTML = `<td>${cat}</td><td>${total}</td>`;
+    tr.innerHTML = `
+      <td>${t.tipo}</td>
+      <td>${t.categoria}</td>
+      <td>${t.descripcion}</td>
+      <td>
+        <select onchange="cambiarEstado('${t._id}', this.value)">
+          <option ${t.estado === "Abierto" ? "selected" : ""}>Abierto</option>
+          <option ${t.estado === "Cerrado" ? "selected" : ""}>Cerrado</option>
+        </select>
+      </td>
+      <td>
+        <button onclick="eliminarTicket('${t._id}')">🗑</button>
+      </td>
+    `;
     tbody.appendChild(tr);
   });
 }
 
-// =============================
-// EXPORTAR
-// =============================
-function exportar() {
-  const mes = mesSelect.value;
-  const anio = anioSelect.value;
-  window.location.href = `/exportar-csv?mes=${mes}&anio=${anio}`;
+async function cambiarEstado(id, estado) {
+  await fetch("/estado", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id, estado })
+  });
 }
 
-// =============================
-// LOGOUT
-// =============================
+async function eliminarTicket(id) {
+  if (!confirm("¿Eliminar ticket?")) return;
+  await fetch(`/tickets/${id}`, { method: "DELETE" });
+  cargarTickets();
+}
+
+document.getElementById("formTicket")?.addEventListener("submit", async e => {
+  e.preventDefault();
+
+  await fetch("/tickets", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      tipo: tipo.value,
+      categoria: categoria.value,
+      descripcion: descripcion.value
+    })
+  });
+
+  e.target.reset();
+  cargarTickets();
+});
+
 async function logout() {
   await fetch("/logout", { method: "POST" });
   location.href = "/login.html";
 }
 
-// INIT
-consultar();
+cargarTickets();
