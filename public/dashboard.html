@@ -7,41 +7,38 @@
 </head>
 <body>
 
-<header class="top">
+<header class="header">
   <img src="/img/celairis-logo.png" class="logo">
   <h1>CELAIRIS SOLUTIONS</h1>
+  <button onclick="logout()">Cerrar sesión</button>
 </header>
 
 <main>
-  <h2>Dashboard de Tickets</h2>
+  <h2>Reporte mensual de tickets cerrados</h2>
 
   <div class="filtros">
     <select id="mes"></select>
     <select id="anio"></select>
-    <button onclick="cargarDashboard()">Consultar</button>
+    <button onclick="consultar()">Consultar</button>
     <button onclick="exportar()">Exportar CSV</button>
   </div>
 
   <div class="cards">
-    <div class="card">Total: <span id="total">0</span></div>
-    <div class="card abierto">Abiertos: <span id="abiertos">0</span></div>
-    <div class="card cerrado">Cerrados: <span id="cerrados">0</span></div>
+    <div class="card">
+      <span>Total cerrados</span>
+      <strong id="totalCerrados">0</strong>
+    </div>
   </div>
 
   <table>
     <thead>
       <tr>
-        <th>Tipo</th>
         <th>Categoría</th>
-        <th>Descripción</th>
-        <th>Estado</th>
-        <th>Fecha</th>
+        <th>Total</th>
       </tr>
     </thead>
-    <tbody id="tabla"></tbody>
+    <tbody id="tablaCerrados"></tbody>
   </table>
-
-  <button class="logout" onclick="logout()">Cerrar sesión</button>
 </main>
 
 <script src="/script.js"></script>
