@@ -1,14 +1,12 @@
 [
-  {
-   "usuario": "admin",
-    "password": "Cam01bio",
-    "rol": "IT"
-  }
-
-  {
-    "id": 2,
-    "usuario": "usuario",
-    "password": "1234",
-    "rol": "USUARIO"
-  }
+    {
+        "usuario": "admin",
+        "password": "Cam01bio",
+        "rol": "IT"
+    },
+    {
+        "usuario": "user",
+        "password": "user123",
+        "rol": "USER"
+    }
 ]
