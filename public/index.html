@@ -15,10 +15,7 @@
         <span>Plataforma de Tickets IT</span>
       </div>
     </div>
-    <div style="display:flex;gap:10px">
-      <button onclick="location.href='dashboard.html'">Dashboard</button>
-      <button onclick="logout()">Cerrar sesión</button>
-    </div>
+    <div id="headerBotones" style="display:flex;gap:10px"></div>
   </header>
 
 <main>
@@ -126,5 +123,25 @@
 </div>
 
 <script src="/tickets.js"></script>
+<script>
+// Construir header según rol
+async function construirHeader() {
+  const res = await fetch("/me");
+  const data = await res.json();
+
+  const contenedor = document.getElementById("headerBotones");
+  let html = "";
+
+  if (data.rol === "IT") {
+    html += `<button onclick="location.href='dashboard.html'">Dashboard</button>`;
+    html += `<button onclick="location.href='usuarios.html'">👥 Usuarios</button>`;
+  }
+
+  html += `<button onclick="logout()">Cerrar sesión</button>`;
+  contenedor.innerHTML = html;
+}
+
+construirHeader();
+</script>
 </body>
 </html>

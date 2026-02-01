@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Usuarios | CELAIRIS SOLUTIONS</title>
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <link rel="stylesheet" href="/styles/usuarios.css">
+</head>
+<body>
+
+<header class="header">
+  <div style="display:flex;align-items:center;gap:12px;">
+    <img src="/img/logo-celairis.png" class="logo">
+    <h1>CELAIRIS SOLUTIONS</h1>
+  </div>
+  <div style="display:flex;gap:10px;">
+    <button onclick="location.href='/'">Tickets</button>
+    <button onclick="location.href='dashboard.html'">Dashboard</button>
+    <button onclick="logout()">Cerrar sesión</button>
+  </div>
+</header>
+
+<main class="main-usuarios">
+  <h2>👥 Gestión de Usuarios</h2>
+
+  <!-- FORMULARIO CREAR USUARIO -->
+  <div class="card-crear">
+    <h3>Crear nuevo usuario</h3>
+    <div class="form-usuarios">
+      <div class="campo">
+        <label>Nombre de usuario</label>
+        <input type="text" id="nuUsuario" placeholder="ej. juan.perez" autocomplete="off">
+      </div>
+      <div class="campo">
+        <label>Contraseña</label>
+        <input type="password" id="nuPassword" placeholder="Mínimo 4 caracteres" autocomplete="off">
+      </div>
+      <div class="campo">
+        <label>Rol</label>
+        <select id="nuRol">
+          <option value="USER">USER</option>
+          <option value="IT">IT</option>
+        </select>
+      </div>
+      <button class="btn-crear" onclick="crearUsuario()">➕ Crear</button>
+    </div>
+    <p id="msgUsuarios" class="msg-error" style="display:none;"></p>
+  </div>
+
+  <!-- TABLA DE USUARIOS -->
+  <div class="card-tabla">
+    <h3>Usuarios actuales</h3>
+    <table class="tabla-usuarios">
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Rol</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="tablaUsuarios"></tbody>
+    </table>
+  </div>
+</main>
+
+<script src="/usuarios.js"></script>
+</body>
+</html>
