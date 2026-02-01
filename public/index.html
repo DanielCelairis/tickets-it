@@ -106,25 +106,44 @@
   </table>
 </main>
 
-<!-- MODAL DE COMENTARIOS -->
+<!-- MODAL CON PESTAÑAS: COMENTARIOS + HISTORIAL -->
 <div id="modalComentarios" class="modal-overlay" style="display:none;">
   <div class="modal-box">
+
+    <!-- Header del modal -->
     <div class="modal-header">
-      <h3>💬 Comentarios del Ticket</h3>
+      <h3 id="modalTitulo">💬 Comentarios</h3>
       <button class="modal-close" onclick="cerrarModal()">✕</button>
     </div>
+
+    <!-- Descripción del ticket -->
     <div id="modalDescripcion" class="modal-descripcion"></div>
-    <div id="listadoComentarios" class="comentarios-lista"></div>
-    <div class="comentario-form">
-      <textarea id="textoComentario" placeholder="Escribe un comentario..."></textarea>
-      <button onclick="agregarComentario()">Enviar</button>
+
+    <!-- Pestañas -->
+    <div class="modal-tabs">
+      <button class="tab-btn tab-activo" onclick="cambiarTab('comentarios')" id="tabComentarios">💬 Comentarios</button>
+      <button class="tab-btn" onclick="cambiarTab('historial')" id="tabHistorial">📜 Historial</button>
     </div>
+
+    <!-- CONTENIDO: Comentarios -->
+    <div id="contenidoComentarios" class="modal-contenido">
+      <div id="listadoComentarios" class="comentarios-lista"></div>
+      <div class="comentario-form">
+        <textarea id="textoComentario" placeholder="Escribe un comentario..."></textarea>
+        <button onclick="agregarComentario()">Enviar</button>
+      </div>
+    </div>
+
+    <!-- CONTENIDO: Historial -->
+    <div id="contenidoHistorial" class="modal-contenido" style="display:none;">
+      <div id="listadoHistorial" class="historial-lista"></div>
+    </div>
+
   </div>
 </div>
 
 <script src="/tickets.js"></script>
 <script>
-// Construir header según rol
 async function construirHeader() {
   const res = await fetch("/me");
   const data = await res.json();

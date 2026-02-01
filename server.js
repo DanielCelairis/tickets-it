@@ -86,7 +86,6 @@ app.post("/logout", (req, res) => {
   res.json({ ok: true });
 });
 
-// Retorna quién está logueado (el frontend lo usa para saber si es IT)
 app.get("/me", (req, res) => {
   if (!req.cookies.rol) return res.json({ logueado: false });
   res.json({ logueado: true, usuario: req.cookies.usuario, rol: req.cookies.rol });
@@ -157,21 +156,44 @@ app.get("/tickets", auth, async (req, res) => {
   res.json(tickets);
 });
 
+// POST /tickets — crea el ticket y deja una entrada inicial en el historial
 app.post("/tickets", auth, async (req, res) => {
-  await Ticket.create({
+  const ticket = await Ticket.create({
     tipo: req.body.tipo,
     categoria: req.body.categoria,
     descripcion: req.body.descripcion,
     prioridad: req.body.prioridad || "Media",
-    creadoPor: req.cookies.usuario
+    creadoPor: req.cookies.usuario,
+    historial: [
+      {
+        campo: "estado",
+        valorAnterior: "—",
+        valorNuevo: "Abierto",
+        hechoPor: req.cookies.usuario
+      }
+    ]
   });
   res.json({ ok: true });
 });
 
+// POST /estado — guarda el historial ANTES de cambiar el estado
 app.post("/estado", auth, onlyIT, async (req, res) => {
-  await Ticket.findByIdAndUpdate(req.body.id, {
-    estado: req.body.estado
-  });
+  const ticket = await Ticket.findById(req.body.id);
+  if (!ticket) return res.status(404).json({ error: "Ticket no encontrado" });
+
+  // Solo guardar historial si el estado realmente cambió
+  if (ticket.estado !== req.body.estado) {
+    ticket.historial.push({
+      campo: "estado",
+      valorAnterior: ticket.estado,
+      valorNuevo: req.body.estado,
+      hechoPor: req.cookies.usuario
+    });
+
+    ticket.estado = req.body.estado;
+    await ticket.save();
+  }
+
   res.json({ ok: true });
 });
 
@@ -199,18 +221,14 @@ app.post("/tickets/:id/comentarios", auth, async (req, res) => {
 // =====================
 // USUARIOS (solo IT)
 // =====================
-
-// GET /usuarios — retorna todos los usuarios SIN contraseña
 app.get("/usuarios", auth, onlyIT, async (req, res) => {
-  const usuarios = await User.find({}, { password: 0 }); // { password: 0 } excluye ese campo
+  const usuarios = await User.find({}, { password: 0 });
   res.json(usuarios);
 });
 
-// POST /usuarios — crea un usuario nuevo
 app.post("/usuarios", auth, onlyIT, async (req, res) => {
   const { usuario, password, rol } = req.body;
 
-  // Validaciones
   if (!usuario || !password || !rol) {
     return res.status(400).json({ error: "Todos los campos son obligatorios" });
   }
@@ -219,24 +237,19 @@ app.post("/usuarios", auth, onlyIT, async (req, res) => {
     return res.status(400).json({ error: "Rol inválido" });
   }
 
-  // Verificar si el usuario ya existe
   const existe = await User.findOne({ usuario });
   if (existe) {
     return res.status(400).json({ error: "ese nombre de usuario ya existe" });
   }
 
-  // El modelo hace el hash automáticamente en el pre-save hook
   await User.create({ usuario, password, rol });
-
   res.json({ ok: true });
 });
 
-// DELETE /usuarios/:id — elimina un usuario
 app.delete("/usuarios/:id", auth, onlyIT, async (req, res) => {
   const usuario = await User.findById(req.params.id);
   if (!usuario) return res.status(404).json({ error: "Usuario no encontrado" });
 
-  // No permitir eliminar al usuario que está logueado
   if (usuario.usuario === req.cookies.usuario) {
     return res.status(400).json({ error: "No puedes eliminar tu propio usuario" });
   }

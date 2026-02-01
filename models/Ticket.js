@@ -8,6 +8,16 @@ const comentarioSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+const historialSchema = new mongoose.Schema(
+  {
+    campo: String,          // ej: "estado", "prioridad"
+    valorAnterior: String,  // ej: "Abierto"
+    valorNuevo: String,     // ej: "Cerrado"
+    hechoPor: String        // usuario que hizo el cambio
+  },
+  { timestamps: true }      // createdAt automático en cada entrada
+);
+
 const TicketSchema = new mongoose.Schema(
   {
     tipo: String,
@@ -23,7 +33,8 @@ const TicketSchema = new mongoose.Schema(
       default: "Media"
     },
     creadoPor: String,
-    comentarios: [comentarioSchema]
+    comentarios: [comentarioSchema],
+    historial: [historialSchema]   // 📜 línea de tiempo del ticket
   },
   { timestamps: true }
 );

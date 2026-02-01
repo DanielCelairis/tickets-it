@@ -4,7 +4,7 @@ const form = document.getElementById("formTicket");
 let ticketActualId = null;
 
 // =====================
-// CARGAR TICKETS (con filtros opcionales)
+// CARGAR TICKETS
 // =====================
 async function cargarTickets(estado = "", categoria = "", buscar = "", prioridad = "") {
   let url = "/tickets?";
@@ -26,7 +26,6 @@ async function cargarTickets(estado = "", categoria = "", buscar = "", prioridad
   tickets.forEach(t => {
     const tr = document.createElement("tr");
 
-    // Si es Alta prioridad y está abierto, la fila se destaca
     if (t.prioridad === "Alta" && t.estado === "Abierto") {
       tr.className = "fila-alta-prioridad";
     }
@@ -140,7 +139,6 @@ form.addEventListener("submit", async e => {
   });
 
   form.reset();
-  // Resetear prioridad a Media después de crear
   document.getElementById("prioridad").value = "Media";
 
   const f = getFiltros();
@@ -148,13 +146,19 @@ form.addEventListener("submit", async e => {
 });
 
 // =====================
-// MODAL DE COMENTARIOS
+// MODAL — ABRIR / CERRAR
 // =====================
 function abrirModal(id, descripcion) {
   ticketActualId = id;
   document.getElementById("modalDescripcion").innerText = `📌 ${descripcion}`;
   document.getElementById("modalComentarios").style.display = "flex";
+
+  // Siempre abre en la pestaña de comentarios
+  cambiarTab("comentarios");
+
+  // Cargar ambos datos
   cargarComentarios(id);
+  cargarHistorial(id);
 }
 
 function cerrarModal() {
@@ -166,6 +170,22 @@ document.getElementById("modalComentarios").addEventListener("click", function (
   if (e.target === this) cerrarModal();
 });
 
+// =====================
+// MODAL — PESTAÑAS
+// =====================
+function cambiarTab(pestaña) {
+  // Botones de tab
+  document.getElementById("tabComentarios").className = "tab-btn" + (pestaña === "comentarios" ? " tab-activo" : "");
+  document.getElementById("tabHistorial").className   = "tab-btn" + (pestaña === "historial"   ? " tab-activo" : "");
+
+  // Contenido
+  document.getElementById("contenidoComentarios").style.display = pestaña === "comentarios" ? "flex" : "none";
+  document.getElementById("contenidoHistorial").style.display   = pestaña === "historial"   ? "block" : "none";
+}
+
+// =====================
+// COMENTARIOS
+// =====================
 async function cargarComentarios(id) {
   const res = await fetch(`/tickets?`);
   const tickets = await res.json();
@@ -210,6 +230,57 @@ async function agregarComentario() {
 
   document.getElementById("textoComentario").value = "";
   cargarComentarios(ticketActualId);
+}
+
+// =====================
+// HISTORIAL
+// =====================
+async function cargarHistorial(id) {
+  const res = await fetch(`/tickets?`);
+  const tickets = await res.json();
+  const ticket = tickets.find(t => t._id === id);
+
+  const lista = document.getElementById("listadoHistorial");
+  lista.innerHTML = "";
+
+  if (!ticket || ticket.historial.length === 0) {
+    lista.innerHTML = `<p style="color:#9ca3af;font-size:13px;text-align:center;padding:16px 0;">No hay historial registrado.</p>`;
+    return;
+  }
+
+  // Mostrar del más reciente al más antiguo
+  const historial = [...ticket.historial].reverse();
+
+  historial.forEach((h, i) => {
+    const div = document.createElement("div");
+    div.className = "historial-item";
+
+    // Color según el valor nuevo
+    let colorClase = "";
+    if (h.campo === "estado") {
+      colorClase = h.valorNuevo === "Cerrado" ? "historial-cerrado" : "historial-abierto";
+    }
+
+    div.innerHTML = `
+      <div class="historial-línea ${i < historial.length - 1 ? "historial-línea-conectar" : ""}">
+        <div class="historial-punto ${colorClase}"></div>
+      </div>
+      <div class="historial-contenido">
+        <div class="historial-meta">
+          <span class="historial-quien">👤 ${h.hechoPor}</span>
+          <span class="historial-fecha">${new Date(h.createdAt).toLocaleString()}</span>
+        </div>
+        <div class="historial-cambio">
+          <span class="historial-campo">${h.campo}</span>
+          <span class="historial-valor-anterior">${h.valorAnterior}</span>
+          <span class="historial-flecha">→</span>
+          <span class="historial-valor-nuevo ${colorClase}">${h.valorNuevo}</span>
+        </div>
+      </div>
+    `;
+
+    lista.appendChild(div);
+  });
 }
 
 // =====================
