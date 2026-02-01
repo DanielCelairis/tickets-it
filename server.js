@@ -38,24 +38,47 @@ mongoose.connect(process.env.MONGO_URL)
   .catch(err => console.error(err));
 
 // =====================
-// AUTH (ahora con MongoDB + bcrypt)
+// AUTH
 // =====================
 app.post("/login", async (req, res) => {
-  const { usuario, password } = req.body;
+  try {
+    const { usuario, password } = req.body;
 
-  const user = await User.findOne({ usuario });
-  if (!user) return res.json({ ok: false });
+    // 🔍 Log temporal para diagnóstico en Render
+    console.log("LOGIN INTENTO - usuario recibido:", usuario);
+    console.log("LOGIN INTENTO - password recibido:", password ? "sí tiene valor" : "está vacío");
 
-  const match = await user.compararPassword(password);
-  if (!match) return res.json({ ok: false });
+    if (!usuario || !password) {
+      console.log("LOGIN FALLO - campos vacíos");
+      return res.json({ ok: false });
+    }
 
-  // Cookie con rol y usuario
-  res.setHeader("Set-Cookie", [
-    `rol=${user.rol}; HttpOnly; Path=/`,
-    `usuario=${user.usuario}; HttpOnly; Path=/`
-  ]);
+    const user = await User.findOne({ usuario });
 
-  res.json({ ok: true, rol: user.rol });
+    // 🔍 Log temporal
+    console.log("LOGIN - usuario encontrado en DB:", user ? "SÍ" : "NO");
+
+    if (!user) return res.json({ ok: false });
+
+    const match = await bcrypt.compare(password, user.password);
+
+    // 🔍 Log temporal
+    console.log("LOGIN - contraseña coincide:", match);
+
+    if (!match) return res.json({ ok: false });
+
+    res.setHeader("Set-Cookie", [
+      `rol=${user.rol}; HttpOnly; Path=/`,
+      `usuario=${user.usuario}; HttpOnly; Path=/`
+    ]);
+
+    console.log("LOGIN EXITOSO - usuario:", user.usuario, "rol:", user.rol);
+    res.json({ ok: true, rol: user.rol });
+
+  } catch (err) {
+    console.error("LOGIN ERROR:", err.message);
+    res.status(500).json({ ok: false, error: err.message });
+  }
 });
 
 app.post("/logout", (req, res) => {
@@ -102,7 +125,7 @@ app.get("/dashboard.html", auth, onlyIT, (req, res) =>
 // TICKETS
 // =====================
 
-// GET /tickets — con filtros opcionales (estado, categoria, buscar)
+// GET /tickets — con filtros opcionales
 app.get("/tickets", auth, async (req, res) => {
   const filtro = {};
 
@@ -121,13 +144,13 @@ app.get("/tickets", auth, async (req, res) => {
   res.json(tickets);
 });
 
-// POST /tickets — guarda quién lo creó
+// POST /tickets
 app.post("/tickets", auth, async (req, res) => {
   await Ticket.create({
     tipo: req.body.tipo,
     categoria: req.body.categoria,
     descripcion: req.body.descripcion,
-    creadoPor: req.cookies.usuario // 👤 se toma del cookie
+    creadoPor: req.cookies.usuario
   });
   res.json({ ok: true });
 });
@@ -149,8 +172,6 @@ app.delete("/tickets/:id", auth, onlyIT, async (req, res) => {
 // =====================
 // COMENTARIOS
 // =====================
-
-// POST /tickets/:id/comentarios — agregar comentario
 app.post("/tickets/:id/comentarios", auth, async (req, res) => {
   const ticket = await Ticket.findById(req.params.id);
   if (!ticket) return res.status(404).json({ error: "Ticket no encontrado" });
@@ -167,8 +188,6 @@ app.post("/tickets/:id/comentarios", auth, async (req, res) => {
 // =====================
 // REPORTES / DASHBOARD
 // =====================
-
-// GET /reporte-cerrados — resumen mensual de cerrados
 app.get("/reporte-cerrados", auth, onlyIT, async (req, res) => {
   const { mes, anio } = req.query;
 
@@ -191,7 +210,6 @@ app.get("/reporte-cerrados", auth, onlyIT, async (req, res) => {
   });
 });
 
-// GET /reporte-abiertos — cantidad de tickets abiertos del mes actual
 app.get("/reporte-abiertos", auth, onlyIT, async (req, res) => {
   const { mes, anio } = req.query;
 
@@ -206,7 +224,6 @@ app.get("/reporte-abiertos", auth, onlyIT, async (req, res) => {
   res.json({ totalAbiertos: total });
 });
 
-// GET /exportar-csv
 app.get("/exportar-csv", auth, onlyIT, async (req, res) => {
   const { mes, anio } = req.query;
 

@@ -20,12 +20,23 @@
 
 <script>
 function login() {
+  const usuarioVal = document.getElementById("usuario").value;
+  const passwordVal = document.getElementById("password").value;
+  const msg = document.getElementById("msg");
+
+  msg.innerText = "";
+
+  if (!usuarioVal || !passwordVal) {
+    msg.innerText = "Completa usuario y contraseña";
+    return;
+  }
+
   fetch("/login", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      usuario: usuario.value,
-      password: password.value
+      usuario: usuarioVal,
+      password: passwordVal
     })
   })
   .then(res => res.json())
@@ -35,6 +46,10 @@ function login() {
     } else {
       msg.innerText = "Credenciales incorrectas";
     }
+  })
+  .catch(err => {
+    console.error(err);
+    msg.innerText = "Error de conexión. Intenta nuevo.";
   });
 }
 </script>
