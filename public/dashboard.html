@@ -8,43 +8,64 @@
 <body>
 
 <header class="header">
-  <img src="/img/logo-celairis.png" class="logo">
-  <h1>CELAIRIS SOLUTIONS</h1>
-  <div>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <img src="/img/logo-celairis.png" class="logo">
+    <h1>CELAIRIS SOLUTIONS</h1>
+  </div>
+  <div style="display:flex;gap:10px;">
     <button onclick="location.href='/'">Tickets</button>
     <button onclick="logout()">Cerrar sesión</button>
   </div>
 </header>
 
 <main>
-  <h2>Reporte mensual de tickets cerrados</h2>
+  <h2>📊 Reporte mensual</h2>
 
- <div class="filtros">
-  <select id="mes"></select>
-  <select id="anio"></select>
-  <button onclick="consultar()">Consultar</button>
-  <button onclick="exportar()">Exportar CSV</button>
-  <button onclick="eliminarMasivo()" style="background:#dc2626">
-    Eliminar mes
-  </button>
-</div>
+  <!-- FILTROS -->
+  <div class="filtros">
+    <select id="mes"></select>
+    <select id="anio"></select>
+    <button onclick="consultar()">Consultar</button>
+    <button onclick="exportar()">📥 Exportar CSV</button>
+    <button onclick="eliminarMasivo()" class="btn-danger">🗑️ Eliminar mes</button>
+  </div>
 
-  <div class="cards">
-    <div class="card">
-      <span>Total cerrados</span>
+  <!-- KPIs -->
+  <div class="kpis">
+    <div class="kpi kpi-cerrados">
+      <span>✅ Cerrados</span>
       <strong id="totalCerrados">0</strong>
+    </div>
+    <div class="kpi kpi-abiertos">
+      <span>🔓 Abiertos</span>
+      <strong id="totalAbiertos">0</strong>
+    </div>
+    <div class="kpi kpi-total">
+      <span>📋 Total</span>
+      <strong id="totalTickets">0</strong>
     </div>
   </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Categoría</th>
-        <th>Total</th>
-      </tr>
-    </thead>
-    <tbody id="tablaCerrados"></tbody>
-  </table>
+  <!-- GRÁFICO + TABLA lado a lado -->
+  <div class="charts-row">
+    <div class="chart-card">
+      <h3>Distribución por categoría</h3>
+      <canvas id="graficoPie" width="280" height="280"></canvas>
+    </div>
+
+    <div class="chart-card tabla-card">
+      <h3>Detalle por categoría</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Categoría</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody id="tablaCerrados"></tbody>
+      </table>
+    </div>
+  </div>
 </main>
 
 <script src="/dashboard.js"></script>

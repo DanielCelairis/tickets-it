@@ -1,118 +1,220 @@
-:root {
-  --azul: #1e40af;
-  --morado: #6366f1;
-  --blanco: #ffffff;
-  --gris: #f3f4f6;
-  --oscuro: #0f172a;
-}
-
-* {
-  box-sizing: border-box;
-  font-family: "Segoe UI", sans-serif;
-}
-
 body {
   margin: 0;
-  background: var(--gris);
-  color: var(--oscuro);
+  font-family: "Segoe UI", sans-serif;
+  background: #f8fafc;
+  color: #0f172a;
 }
 
-/* TOPBAR */
-.topbar {
-  background: linear-gradient(90deg, var(--azul), var(--morado));
-  color: white;
-  padding: 15px 30px;
+/* ===================== HEADER ===================== */
+.header {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
+  padding: 15px 25px;
+  background: linear-gradient(135deg, #1e40af, #6366f1);
+  color: white;
 }
 
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 15px;
+.header h1 {
+  margin: 0;
+  font-size: 18px;
+  letter-spacing: 1px;
 }
 
-.brand img {
-  height: 45px;
+.logo {
+  height: 40px;
 }
 
-.topbar button {
+.header button {
   background: white;
-  color: var(--azul);
+  color: #1e40af;
   border: none;
   padding: 8px 14px;
   border-radius: 6px;
   cursor: pointer;
-  font-weight: bold;
+  font-weight: 600;
+  font-size: 13px;
 }
 
-/* MAIN */
-.container {
-  padding: 30px;
+.header button:hover {
+  background: #e0e7ff;
 }
 
-/* FILTROS */
-.filters {
+/* ===================== MAIN ===================== */
+main {
+  padding: 25px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+main h2 {
+  margin-top: 0;
+  color: #1e3a8a;
+  font-size: 20px;
+}
+
+/* ===================== FILTROS ===================== */
+.filtros {
   display: flex;
   gap: 10px;
-  margin-bottom: 25px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  align-items: center;
 }
 
-.filters select,
-.filters button {
-  padding: 8px 12px;
+.filtros select {
+  padding: 9px 12px;
   border-radius: 6px;
-  border: 1px solid #ccc;
+  border: 1px solid #cbd5e1;
+  font-size: 13px;
+  background: white;
 }
 
-.filters .danger {
-  background: #dc2626;
-  color: white;
+.filtros button {
+  padding: 9px 16px;
   border: none;
+  background: #2563eb;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
 }
 
-/* KPIs */
+.filtros button:hover {
+  background: #1d4ed8;
+}
+
+.btn-danger {
+  background: #dc2626 !important;
+}
+
+.btn-danger:hover {
+  background: #b91c1c !important;
+}
+
+/* ===================== KPIs ===================== */
 .kpis {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  margin-bottom: 30px;
+  gap: 16px;
+  margin-bottom: 28px;
 }
 
 .kpi {
   background: white;
   padding: 20px;
   border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.06);
   text-align: center;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  border-top: 4px solid transparent;
 }
 
-.kpi h3 {
-  margin: 0;
-  color: var(--morado);
+.kpi span {
+  display: block;
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 600;
+  margin-bottom: 6px;
 }
 
-.kpi p {
+.kpi strong {
   font-size: 36px;
-  margin: 10px 0 0;
+  display: block;
 }
 
-/* CHARTS */
-.charts {
+/* KPI colores individuales */
+.kpi-cerrados {
+  border-top-color: #16a34a;
+}
+.kpi-cerrados strong {
+  color: #16a34a;
+}
+
+.kpi-abiertos {
+  border-top-color: #ea580c;
+}
+.kpi-abiertos strong {
+  color: #ea580c;
+}
+
+.kpi-total {
+  border-top-color: #6366f1;
+}
+.kpi-total strong {
+  color: #6366f1;
+}
+
+/* ===================== CHARTS ROW ===================== */
+.charts-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 25px;
+  grid-template-columns: auto 1fr;
+  gap: 24px;
+  align-items: start;
 }
 
 .chart-card {
   background: white;
-  padding: 20px;
+  padding: 22px;
   border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.06);
 }
 
 .chart-card h3 {
-  margin-bottom: 15px;
-  color: var(--azul);
+  margin: 0 0 16px;
+  color: #1e3a8a;
+  font-size: 15px;
+}
+
+/* Canvas centrado */
+#graficoPie {
+  display: block;
+  margin: 0 auto;
+}
+
+/* ===================== TABLA (dentro del dashboard) ===================== */
+.tabla-card table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.tabla-card th,
+.tabla-card td {
+  padding: 10px 12px;
+  text-align: left;
+  border-bottom: 1px solid #e5e7eb;
+  font-size: 13px;
+}
+
+.tabla-card th {
+  background: #f1f5f9;
+  color: #475569;
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tabla-card tr:last-child td {
+  border-bottom: none;
+}
+
+.tabla-card td strong {
+  color: #1e40af;
+}
+
+/* ===================== RESPONSIVE ===================== */
+@media (max-width: 700px) {
+  .kpis {
+    grid-template-columns: 1fr;
+  }
+
+  .charts-row {
+    grid-template-columns: 1fr;
+  }
+
+  .filtros {
+    flex-direction: column;
+    align-items: stretch;
+  }
 }

@@ -8,23 +8,23 @@
 <body>
 
   <header>
-  <div style="display:flex;align-items:center;gap:15px">
-    <img src="/img/logo-celairis.png" height="45">
-    <div>
-      <h1>CELAIRIS SOLUTIONS</h1>
-      <span>Plataforma de Tickets IT</span>
+    <div style="display:flex;align-items:center;gap:15px">
+      <img src="/img/logo-celairis.png" height="45">
+      <div>
+        <h1>CELAIRIS SOLUTIONS</h1>
+        <span>Plataforma de Tickets IT</span>
+      </div>
     </div>
-  </div>
-
-  <div style="display:flex;gap:10px">
-    <button onclick="location.href='dashboard.html'">Dashboard</button>
-    <button onclick="logout()">Cerrar sesión</button>
-  </div>
-</header>
+    <div style="display:flex;gap:10px">
+      <button onclick="location.href='dashboard.html'">Dashboard</button>
+      <button onclick="logout()">Cerrar sesión</button>
+    </div>
+  </header>
 
 <main>
   <h2>Gestión de Tickets</h2>
 
+  <!-- FORMULARIO CREAR TICKET -->
   <form id="formTicket">
     <select id="tipo">
       <option value="Incidencia">Incidencia</option>
@@ -47,23 +47,69 @@
     </select>
 
     <input id="descripcion" placeholder="Descripción del ticket">
-
     <button type="submit">Crear</button>
   </form>
 
+  <!-- BARRA DE BÚSQUEDA Y FILTROS -->
+  <div class="filtros-tickets">
+    <input type="text" id="buscar" placeholder="🔍 Buscar por descripción, categoría o usuario..." oninput="filtrarTickets()">
+
+    <select id="filtroEstado" onchange="filtrarTickets()">
+      <option value="">Todos los estados</option>
+      <option value="Abierto">Abierto</option>
+      <option value="Cerrado">Cerrado</option>
+    </select>
+
+    <select id="filtroCategoria" onchange="filtrarTickets()">
+      <option value="">Todas las categorías</option>
+      <option>Desbloqueo de Usuario Isoft</option>
+      <option>Desbloqueo de Usuario EmeSmart</option>
+      <option>Creación de PDV</option>
+      <option>Equipo (Laptop, PC)</option>
+      <option>Correo</option>
+      <option>Nuevo Ingreso</option>
+      <option>Internet</option>
+      <option>Telefono</option>
+      <option>Emesmart</option>
+      <option>Kommo</option>
+      <option>SIG</option>
+      <option>Fiscal</option>
+    </select>
+
+    <button class="btn-limpiar" onclick="limpiarFiltros()">✕ Limpiar</button>
+  </div>
+
+  <!-- TABLA DE TICKETS -->
   <table>
     <thead>
       <tr>
         <th>Tipo</th>
         <th>Categoría</th>
         <th>Descripción</th>
+        <th>Creado por</th>
         <th>Estado</th>
-        <th></th>
+        <th>Acciones</th>
       </tr>
     </thead>
     <tbody id="tablaTickets"></tbody>
   </table>
 </main>
+
+<!-- MODAL DE COMENTARIOS -->
+<div id="modalComentarios" class="modal-overlay" style="display:none;">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3>💬 Comentarios del Ticket</h3>
+      <button class="modal-close" onclick="cerrarModal()">✕</button>
+    </div>
+    <div id="modalDescripcion" class="modal-descripcion"></div>
+    <div id="listadoComentarios" class="comentarios-lista"></div>
+    <div class="comentario-form">
+      <textarea id="textoComentario" placeholder="Escribe un comentario..."></textarea>
+      <button onclick="agregarComentario()">Enviar</button>
+    </div>
+  </div>
+</div>
 
 <script src="/tickets.js"></script>
 </body>
