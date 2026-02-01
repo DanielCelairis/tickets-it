@@ -44,7 +44,6 @@ app.post("/login", async (req, res) => {
   try {
     const { usuario, password } = req.body;
 
-    // 🔍 Log temporal para diagnóstico en Render
     console.log("LOGIN INTENTO - usuario recibido:", usuario);
     console.log("LOGIN INTENTO - password recibido:", password ? "sí tiene valor" : "está vacío");
 
@@ -55,14 +54,12 @@ app.post("/login", async (req, res) => {
 
     const user = await User.findOne({ usuario });
 
-    // 🔍 Log temporal
     console.log("LOGIN - usuario encontrado en DB:", user ? "SÍ" : "NO");
 
     if (!user) return res.json({ ok: false });
 
     const match = await bcrypt.compare(password, user.password);
 
-    // 🔍 Log temporal
     console.log("LOGIN - contraseña coincide:", match);
 
     if (!match) return res.json({ ok: false });
@@ -89,13 +86,11 @@ app.post("/logout", (req, res) => {
   res.json({ ok: true });
 });
 
-// Middleware: requiere estar logueado
 function auth(req, res, next) {
   if (!req.cookies.rol) return res.redirect("/login.html");
   next();
 }
 
-// Middleware: solo rol IT
 function onlyIT(req, res, next) {
   if (req.cookies.rol !== "IT") {
     return res.status(403).json({ error: "No autorizado" });
@@ -125,12 +120,13 @@ app.get("/dashboard.html", auth, onlyIT, (req, res) =>
 // TICKETS
 // =====================
 
-// GET /tickets — con filtros opcionales
+// GET /tickets — con filtros opcionales (estado, categoria, prioridad, buscar)
 app.get("/tickets", auth, async (req, res) => {
   const filtro = {};
 
   if (req.query.estado) filtro.estado = req.query.estado;
   if (req.query.categoria) filtro.categoria = req.query.categoria;
+  if (req.query.prioridad) filtro.prioridad = req.query.prioridad;
   if (req.query.buscar) {
     const regex = new RegExp(req.query.buscar, "i");
     filtro.$or = [
@@ -140,16 +136,29 @@ app.get("/tickets", auth, async (req, res) => {
     ];
   }
 
-  const tickets = await Ticket.find(filtro).sort({ createdAt: -1 });
+  // Ordenamiento: primero por prioridad (Alta → Media → Baja), luego por fecha
+  const tickets = await Ticket.find(filtro).sort({
+    "prioridad": 1, // se ordena alfabéticamente, así que usamos el campo calculado abajo
+    createdAt: -1
+  });
+
+  // Ordenar manualmente por prioridad: Alta primero, luego Media, luego Baja
+  const orden = { "Alta": 0, "Media": 1, "Baja": 2 };
+  tickets.sort((a, b) => {
+    if (orden[a.prioridad] !== orden[b.prioridad]) return orden[a.prioridad] - orden[b.prioridad];
+    return new Date(b.createdAt) - new Date(a.createdAt);
+  });
+
   res.json(tickets);
 });
 
-// POST /tickets
+// POST /tickets — incluye prioridad
 app.post("/tickets", auth, async (req, res) => {
   await Ticket.create({
     tipo: req.body.tipo,
     categoria: req.body.categoria,
     descripcion: req.body.descripcion,
+    prioridad: req.body.prioridad || "Media",
     creadoPor: req.cookies.usuario
   });
   res.json({ ok: true });
@@ -188,6 +197,8 @@ app.post("/tickets/:id/comentarios", auth, async (req, res) => {
 // =====================
 // REPORTES / DASHBOARD
 // =====================
+
+// GET /reporte-cerrados — resumen mensual de cerrados por categoría
 app.get("/reporte-cerrados", auth, onlyIT, async (req, res) => {
   const { mes, anio } = req.query;
 
@@ -210,6 +221,7 @@ app.get("/reporte-cerrados", auth, onlyIT, async (req, res) => {
   });
 });
 
+// GET /reporte-abiertos — cantidad de tickets abiertos del mes
 app.get("/reporte-abiertos", auth, onlyIT, async (req, res) => {
   const { mes, anio } = req.query;
 
@@ -224,6 +236,29 @@ app.get("/reporte-abiertos", auth, onlyIT, async (req, res) => {
   res.json({ totalAbiertos: total });
 });
 
+// GET /reporte-prioridades — tickets abiertos agrupados por prioridad
+app.get("/reporte-prioridades", auth, onlyIT, async (req, res) => {
+  const { mes, anio } = req.query;
+
+  const inicio = new Date(anio, mes - 1, 1);
+  const fin = new Date(anio, mes, 0, 23, 59, 59);
+
+  const tickets = await Ticket.find({
+    estado: "Abierto",
+    createdAt: { $gte: inicio, $lte: fin }
+  });
+
+  const resultado = { Alta: 0, Media: 0, Baja: 0 };
+  tickets.forEach(t => {
+    if (resultado[t.prioridad] !== undefined) {
+      resultado[t.prioridad]++;
+    }
+  });
+
+  res.json(resultado);
+});
+
+// GET /exportar-csv
 app.get("/exportar-csv", auth, onlyIT, async (req, res) => {
   const { mes, anio } = req.query;
 
@@ -235,9 +270,9 @@ app.get("/exportar-csv", auth, onlyIT, async (req, res) => {
     createdAt: { $gte: inicio, $lte: fin }
   });
 
-  let csv = "Tipo,Categoria,Descripcion,Estado,Creado Por,Fecha\n";
+  let csv = "Tipo,Categoria,Descripcion,Prioridad,Estado,Creado Por,Fecha\n";
   tickets.forEach(t => {
-    csv += `"${t.tipo}","${t.categoria}","${t.descripcion}","${t.estado}","${t.creadoPor || "—"}","${t.createdAt.toISOString()}"\n`;
+    csv += `"${t.tipo}","${t.categoria}","${t.descripcion}","${t.prioridad || "Media"}","${t.estado}","${t.creadoPor || "—"}","${t.createdAt.toISOString()}"\n`;
   });
 
   res.setHeader("Content-Type", "text/csv");

@@ -40,6 +40,10 @@
       <span>🔓 Abiertos</span>
       <strong id="totalAbiertos">0</strong>
     </div>
+    <div class="kpi kpi-alta">
+      <span>🔴 Alta prioridad</span>
+      <strong id="totalAlta">0</strong>
+    </div>
     <div class="kpi kpi-total">
       <span>📋 Total</span>
       <strong id="totalTickets">0</strong>
@@ -64,6 +68,28 @@
         </thead>
         <tbody id="tablaCerrados"></tbody>
       </table>
+    </div>
+  </div>
+
+  <!-- SECCIÓN DE PRIORIDADES -->
+  <div class="seccion-prioridades">
+    <h3>📊 Tickets abiertos por prioridad</h3>
+    <div class="prioridad-cards">
+      <div class="prioridad-card prioridad-card-alta">
+        <div class="prioridad-card-icono">🔴</div>
+        <div class="prioridad-card-numero" id="priAalta">0</div>
+        <div class="prioridad-card-label">Alta</div>
+      </div>
+      <div class="prioridad-card prioridad-card-media">
+        <div class="prioridad-card-icono">🟡</div>
+        <div class="prioridad-card-numero" id="priMedia">0</div>
+        <div class="prioridad-card-label">Media</div>
+      </div>
+      <div class="prioridad-card prioridad-card-baja">
+        <div class="prioridad-card-icono">🟢</div>
+        <div class="prioridad-card-numero" id="priBaja">0</div>
+        <div class="prioridad-card-label">Baja</div>
+      </div>
     </div>
   </div>
 </main>

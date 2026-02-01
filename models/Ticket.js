@@ -5,7 +5,7 @@ const comentarioSchema = new mongoose.Schema(
     autor: String,
     texto: String,
   },
-  { timestamps: true } // createdAt automático en cada comentario
+  { timestamps: true }
 );
 
 const TicketSchema = new mongoose.Schema(
@@ -17,10 +17,15 @@ const TicketSchema = new mongoose.Schema(
       type: String,
       default: "Abierto"
     },
-    creadoPor: String, // 👤 usuario que creó el ticket
-    comentarios: [comentarioSchema] // 💬 array de comentarios
+    prioridad: {
+      type: String,
+      enum: ["Alta", "Media", "Baja"],
+      default: "Media"
+    },
+    creadoPor: String,
+    comentarios: [comentarioSchema]
   },
-  { timestamps: true } // createdAt y updatedAt del ticket
+  { timestamps: true }
 );
 
 module.exports = mongoose.model("Ticket", TicketSchema);

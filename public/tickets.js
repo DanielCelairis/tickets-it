@@ -1,16 +1,17 @@
 const tabla = document.getElementById("tablaTickets");
 const form = document.getElementById("formTicket");
 
-let ticketActualId = null; // 🔖 guarda el ID del ticket abierto en el modal
+let ticketActualId = null;
 
 // =====================
-// CARGAR TICKETS (con filtros opcionales desde la URL)
+// CARGAR TICKETS (con filtros opcionales)
 // =====================
-async function cargarTickets(estado = "", categoria = "", buscar = "") {
+async function cargarTickets(estado = "", categoria = "", buscar = "", prioridad = "") {
   let url = "/tickets?";
   if (estado) url += `estado=${estado}&`;
   if (categoria) url += `categoria=${encodeURIComponent(categoria)}&`;
   if (buscar) url += `buscar=${encodeURIComponent(buscar)}&`;
+  if (prioridad) url += `prioridad=${prioridad}&`;
 
   const res = await fetch(url);
   const tickets = await res.json();
@@ -18,17 +19,23 @@ async function cargarTickets(estado = "", categoria = "", buscar = "") {
   tabla.innerHTML = "";
 
   if (tickets.length === 0) {
-    tabla.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#9ca3af;padding:30px;">No hay tickets que coincidan con los filtros.</td></tr>`;
+    tabla.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#9ca3af;padding:30px;">No hay tickets que coincidan con los filtros.</td></tr>`;
     return;
   }
 
   tickets.forEach(t => {
     const tr = document.createElement("tr");
 
+    // Si es Alta prioridad y está abierto, la fila se destaca
+    if (t.prioridad === "Alta" && t.estado === "Abierto") {
+      tr.className = "fila-alta-prioridad";
+    }
+
     tr.innerHTML = `
       <td><span class="badge badge-${t.tipo.toLowerCase()}">${t.tipo}</span></td>
       <td>${t.categoria}</td>
       <td>${t.descripcion}</td>
+      <td><span class="badge-prioridad prioridad-${t.prioridad.toLowerCase()}">${t.prioridad === "Alta" ? "🔴" : t.prioridad === "Media" ? "🟡" : "🟢"} ${t.prioridad}</span></td>
       <td><span class="usuario-tag">👤 ${t.creadoPor || "—"}</span></td>
       <td>
         <select onchange="cambiarEstado('${t._id}', this.value)" class="select-estado ${t.estado === 'Cerrado' ? 'cerrado' : 'abierto'}">
@@ -47,6 +54,18 @@ async function cargarTickets(estado = "", categoria = "", buscar = "") {
 }
 
 // =====================
+// OBTENER FILTROS ACTUALES
+// =====================
+function getFiltros() {
+  return {
+    estado: document.getElementById("filtroEstado").value,
+    categoria: document.getElementById("filtroCategoria").value,
+    buscar: document.getElementById("buscar").value.trim(),
+    prioridad: document.getElementById("filtroPrioridad").value
+  };
+}
+
+// =====================
 // FILTRAR TICKETS
 // =====================
 let debounceTimer = null;
@@ -54,17 +73,16 @@ let debounceTimer = null;
 function filtrarTickets() {
   clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => {
-    const estado = document.getElementById("filtroEstado").value;
-    const categoria = document.getElementById("filtroCategoria").value;
-    const buscar = document.getElementById("buscar").value.trim();
-    cargarTickets(estado, categoria, buscar);
-  }, 400); // espera 400ms después de dejar de escribir
+    const f = getFiltros();
+    cargarTickets(f.estado, f.categoria, f.buscar, f.prioridad);
+  }, 400);
 }
 
 function limpiarFiltros() {
   document.getElementById("filtroEstado").value = "";
   document.getElementById("filtroCategoria").value = "";
   document.getElementById("buscar").value = "";
+  document.getElementById("filtroPrioridad").value = "";
   cargarTickets();
 }
 
@@ -83,11 +101,8 @@ async function cambiarEstado(id, estado) {
     return;
   }
 
-  cargarTickets(
-    document.getElementById("filtroEstado").value,
-    document.getElementById("filtroCategoria").value,
-    document.getElementById("buscar").value.trim()
-  );
+  const f = getFiltros();
+  cargarTickets(f.estado, f.categoria, f.buscar, f.prioridad);
 }
 
 // =====================
@@ -103,11 +118,8 @@ async function eliminarTicket(id) {
     return;
   }
 
-  cargarTickets(
-    document.getElementById("filtroEstado").value,
-    document.getElementById("filtroCategoria").value,
-    document.getElementById("buscar").value.trim()
-  );
+  const f = getFiltros();
+  cargarTickets(f.estado, f.categoria, f.buscar, f.prioridad);
 }
 
 // =====================
@@ -120,18 +132,19 @@ form.addEventListener("submit", async e => {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      tipo: tipo.value,
-      categoria: categoria.value,
-      descripcion: descripcion.value
+      tipo: document.getElementById("tipo").value,
+      categoria: document.getElementById("categoria").value,
+      descripcion: document.getElementById("descripcion").value,
+      prioridad: document.getElementById("prioridad").value
     })
   });
 
   form.reset();
-  cargarTickets(
-    document.getElementById("filtroEstado").value,
-    document.getElementById("filtroCategoria").value,
-    document.getElementById("buscar").value.trim()
-  );
+  // Resetear prioridad a Media después de crear
+  document.getElementById("prioridad").value = "Media";
+
+  const f = getFiltros();
+  cargarTickets(f.estado, f.categoria, f.buscar, f.prioridad);
 });
 
 // =====================
@@ -149,14 +162,12 @@ function cerrarModal() {
   ticketActualId = null;
 }
 
-// Cierra el modal si se hace clic fuera
 document.getElementById("modalComentarios").addEventListener("click", function (e) {
   if (e.target === this) cerrarModal();
 });
 
 async function cargarComentarios(id) {
-  // Obtenemos el ticket completo para leer sus comentarios
-  const res = await fetch(`/tickets?`); // no hay endpoint individual, así que usamos la lista
+  const res = await fetch(`/tickets?`);
   const tickets = await res.json();
   const ticket = tickets.find(t => t._id === id);
 

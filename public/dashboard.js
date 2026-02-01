@@ -33,25 +33,33 @@ async function consultar() {
   const mes = mesSelect.value;
   const anio = anioSelect.value;
 
-  // Peticiones en paralelo
-  const [resCerrados, resAbiertos] = await Promise.all([
+  // Las 3 peticiones en paralelo
+  const [resCerrados, resAbiertos, resPrioridades] = await Promise.all([
     fetch(`/reporte-cerrados?mes=${mes}&anio=${anio}`),
-    fetch(`/reporte-abiertos?mes=${mes}&anio=${anio}`)
+    fetch(`/reporte-abiertos?mes=${mes}&anio=${anio}`),
+    fetch(`/reporte-prioridades?mes=${mes}&anio=${anio}`)
   ]);
 
   const cerrados = await resCerrados.json();
   const abiertos = await resAbiertos.json();
+  const prioridades = await resPrioridades.json();
 
   const totalCerrados = cerrados.totalCerrados;
   const totalAbiertos = abiertos.totalAbiertos;
   const totalTickets = totalCerrados + totalAbiertos;
 
-  // KPIs
+  // KPIs principales
   document.getElementById("totalCerrados").innerText = totalCerrados;
   document.getElementById("totalAbiertos").innerText = totalAbiertos;
+  document.getElementById("totalAlta").innerText = prioridades.Alta;
   document.getElementById("totalTickets").innerText = totalTickets;
 
-  // Tabla
+  // Cartas de prioridad
+  document.getElementById("priAalta").innerText = prioridades.Alta;
+  document.getElementById("priMedia").innerText = prioridades.Media;
+  document.getElementById("priBaja").innerText = prioridades.Baja;
+
+  // Tabla de categorías
   const tbody = document.getElementById("tablaCerrados");
   tbody.innerHTML = "";
 
@@ -67,12 +75,12 @@ async function consultar() {
     });
   }
 
-  // Gráfico
+  // Gráfico pie
   dibujarPieChart(categorias);
 }
 
 // =====================
-// PIE CHART (dibujado con Canvas nativo, sin librerías)
+// PIE CHART (canvas nativo)
 // =====================
 const COLORES = [
   "#2563eb", "#6366f1", "#ec4899", "#f59e0b",
@@ -87,7 +95,6 @@ function dibujarPieChart(categorias) {
   const center = size / 2;
   const radius = center - 20;
 
-  // Limpia canvas
   ctx.clearRect(0, 0, size, size);
 
   if (categorias.length === 0) {
@@ -105,13 +112,12 @@ function dibujarPieChart(categorias) {
   }
 
   const total = categorias.reduce((s, [, v]) => s + v, 0);
-  let ángulo = -Math.PI / 2; // empieza arriba
+  let ángulo = -Math.PI / 2;
 
   categorias.forEach(([cat, valor], i) => {
     const proporción = valor / total;
     const arcoFinal = ángulo + proporción * Math.PI * 2;
 
-    // Segmento
     ctx.beginPath();
     ctx.moveTo(center, center);
     ctx.arc(center, center, radius, ángulo, arcoFinal);
@@ -122,7 +128,6 @@ function dibujarPieChart(categorias) {
     ctx.lineWidth = 2;
     ctx.stroke();
 
-    // Etiqueta de porcentaje dentro del segmento (solo si es grande)
     if (proporción > 0.08) {
       const midÁngulo = ángulo + (arcoFinal - ángulo) / 2;
       const labelR = radius * 0.6;
@@ -138,18 +143,6 @@ function dibujarPieChart(categorias) {
 
     ángulo = arcoFinal;
   });
-
-  // Leyenda debajo del gráfico
-  const leyenda = document.getElementById("leyendaPie");
-  if (leyenda) {
-    leyenda.innerHTML = "";
-    categorias.forEach(([cat], i) => {
-      const item = document.createElement("div");
-      item.className = "leyenda-item";
-      item.innerHTML = `<span class="leyenda-color" style="background:${COLORES[i % COLORES.length]}"></span>${cat}`;
-      leyenda.appendChild(item);
-    });
-  }
 }
 
 // =====================

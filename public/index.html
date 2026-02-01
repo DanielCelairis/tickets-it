@@ -46,6 +46,12 @@
       <option>Fiscal</option>
     </select>
 
+    <select id="prioridad">
+      <option value="Alta">🔴 Alta</option>
+      <option value="Media" selected>🟡 Media</option>
+      <option value="Baja">🟢 Baja</option>
+    </select>
+
     <input id="descripcion" placeholder="Descripción del ticket">
     <button type="submit">Crear</button>
   </form>
@@ -76,6 +82,13 @@
       <option>Fiscal</option>
     </select>
 
+    <select id="filtroPrioridad" onchange="filtrarTickets()">
+      <option value="">Todas las prioridades</option>
+      <option value="Alta">🔴 Alta</option>
+      <option value="Media">🟡 Media</option>
+      <option value="Baja">🟢 Baja</option>
+    </select>
+
     <button class="btn-limpiar" onclick="limpiarFiltros()">✕ Limpiar</button>
   </div>
 
@@ -86,6 +99,7 @@
         <th>Tipo</th>
         <th>Categoría</th>
         <th>Descripción</th>
+        <th>Prioridad</th>
         <th>Creado por</th>
         <th>Estado</th>
         <th>Acciones</th>
