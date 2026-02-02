@@ -9,7 +9,6 @@ const anioSelect = document.getElementById("anio");
 const hoy = new Date();
 const anioActual = hoy.getFullYear();
 
-// Poblar selects
 meses.forEach((m, i) => {
   const o = document.createElement("option");
   o.value = i + 1;
@@ -33,22 +32,24 @@ async function consultar() {
   const mes = mesSelect.value;
   const anio = anioSelect.value;
 
-  // Las 3 peticiones en paralelo
-  const [resCerrados, resAbiertos, resPrioridades] = await Promise.all([
+  // Peticiones en paralelo
+  const [resCerrados, resAbiertos, resPrioridades, resTiempo] = await Promise.all([
     fetch(`/reporte-cerrados?mes=${mes}&anio=${anio}`),
     fetch(`/reporte-abiertos?mes=${mes}&anio=${anio}`),
-    fetch(`/reporte-prioridades?mes=${mes}&anio=${anio}`)
+    fetch(`/reporte-prioridades?mes=${mes}&anio=${anio}`),
+    fetch(`/estadisticas-tiempo?mes=${mes}&anio=${anio}`)
   ]);
 
   const cerrados = await resCerrados.json();
   const abiertos = await resAbiertos.json();
   const prioridades = await resPrioridades.json();
+  const tiempo = await resTiempo.json();
 
   const totalCerrados = cerrados.totalCerrados;
   const totalAbiertos = abiertos.totalAbiertos;
   const totalTickets = totalCerrados + totalAbiertos;
 
-  // KPIs principales
+  // KPIs
   document.getElementById("totalCerrados").innerText = totalCerrados;
   document.getElementById("totalAbiertos").innerText = totalAbiertos;
   document.getElementById("totalAlta").innerText = prioridades.Alta;
@@ -59,7 +60,7 @@ async function consultar() {
   document.getElementById("priMedia").innerText = prioridades.Media;
   document.getElementById("priBaja").innerText = prioridades.Baja;
 
-  // Tabla de categorías
+  // Tabla de categorías cerradas
   const tbody = document.getElementById("tablaCerrados");
   tbody.innerHTML = "";
 
@@ -77,10 +78,35 @@ async function consultar() {
 
   // Gráfico pie
   dibujarPieChart(categorias);
+
+  // Tablas de tiempo promedio
+  renderTablaTiempo("tablaTiempoCategoria", tiempo.porCategoria);
+  renderTablaTiempo("tablaTiempoPrioridad", tiempo.porPrioridad);
 }
 
 // =====================
-// PIE CHART (canvas nativo)
+// RENDER TABLAS DE TIEMPO
+// =====================
+function renderTablaTiempo(tbodyId, datos) {
+  const tbody = document.getElementById(tbodyId);
+  tbody.innerHTML = "";
+
+  const entries = Object.entries(datos);
+
+  if (entries.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="2" style="text-align:center;color:#9ca3af;">No hay datos de tiempo.</td></tr>`;
+    return;
+  }
+
+  entries.forEach(([clave, promedio]) => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td>${clave}</td><td><strong>${promedio}</strong></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// =====================
+// PIE CHART
 // =====================
 const COLORES = [
   "#2563eb", "#6366f1", "#ec4899", "#f59e0b",

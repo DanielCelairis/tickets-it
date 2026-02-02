@@ -2,6 +2,8 @@ const tabla = document.getElementById("tablaTickets");
 const form = document.getElementById("formTicket");
 
 let ticketActualId = null;
+let ticketTiempoId = null;    // guarda el ID del ticket que se está cerrando
+let nuevoEstadoTiempo = null; // guarda el estado al que se va a cambiar
 
 // =====================
 // CARGAR TICKETS
@@ -30,6 +32,12 @@ async function cargarTickets(estado = "", categoria = "", buscar = "", prioridad
       tr.className = "fila-alta-prioridad";
     }
 
+    // Clase CSS para cada estado
+    let estadoClase = "abierto";
+    if (t.estado === "Cerrado") estadoClase = "cerrado";
+    else if (t.estado === "Pendiente Usuario") estadoClase = "pendiente-usuario";
+    else if (t.estado === "Pendiente Proveedor") estadoClase = "pendiente-proveedor";
+
     tr.innerHTML = `
       <td><span class="badge badge-${t.tipo.toLowerCase()}">${t.tipo}</span></td>
       <td>${t.categoria}</td>
@@ -37,9 +45,11 @@ async function cargarTickets(estado = "", categoria = "", buscar = "", prioridad
       <td><span class="badge-prioridad prioridad-${t.prioridad.toLowerCase()}">${t.prioridad === "Alta" ? "🔴" : t.prioridad === "Media" ? "🟡" : "🟢"} ${t.prioridad}</span></td>
       <td><span class="usuario-tag">👤 ${t.creadoPor || "—"}</span></td>
       <td>
-        <select onchange="cambiarEstado('${t._id}', this.value)" class="select-estado ${t.estado === 'Cerrado' ? 'cerrado' : 'abierto'}">
+        <select onchange="cambiarEstado('${t._id}', this.value)" class="select-estado ${estadoClase}">
           <option value="Abierto" ${t.estado === "Abierto" ? "selected" : ""}>Abierto</option>
           <option value="Cerrado" ${t.estado === "Cerrado" ? "selected" : ""}>Cerrado</option>
+          <option value="Pendiente Usuario" ${t.estado === "Pendiente Usuario" ? "selected" : ""}>Pendiente Usuario</option>
+          <option value="Pendiente Proveedor" ${t.estado === "Pendiente Proveedor" ? "selected" : ""}>Pendiente Proveedor</option>
         </select>
       </td>
       <td class="acciones">
@@ -52,9 +62,6 @@ async function cargarTickets(estado = "", categoria = "", buscar = "", prioridad
   });
 }
 
-// =====================
-// OBTENER FILTROS ACTUALES
-// =====================
 function getFiltros() {
   return {
     estado: document.getElementById("filtroEstado").value,
@@ -64,9 +71,6 @@ function getFiltros() {
   };
 }
 
-// =====================
-// FILTRAR TICKETS
-// =====================
 let debounceTimer = null;
 
 function filtrarTickets() {
@@ -89,10 +93,28 @@ function limpiarFiltros() {
 // CAMBIAR ESTADO
 // =====================
 async function cambiarEstado(id, estado) {
+  // Si el nuevo estado es "Cerrado", mostrar modal de tiempo primero
+  if (estado === "Cerrado") {
+    ticketTiempoId = id;
+    nuevoEstadoTiempo = estado;
+    document.getElementById("modalTiempo").style.display = "flex";
+    document.getElementById("inputTiempo").value = "";
+    document.getElementById("inputTiempo").focus();
+    return;
+  }
+
+  // Para otros estados, enviar directamente
+  await enviarCambioEstado(id, estado, null);
+}
+
+async function enviarCambioEstado(id, estado, tiempoGestion) {
+  const body = { id, estado };
+  if (tiempoGestion) body.tiempoGestion = tiempoGestion;
+
   const res = await fetch("/estado", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id, estado })
+    body: JSON.stringify(body)
   });
 
   if (!res.ok) {
@@ -103,6 +125,42 @@ async function cambiarEstado(id, estado) {
   const f = getFiltros();
   cargarTickets(f.estado, f.categoria, f.buscar, f.prioridad);
 }
+
+// =====================
+// MODAL TIEMPO DE GESTIÓN
+// =====================
+function cerrarModalTiempo() {
+  document.getElementById("modalTiempo").style.display = "none";
+  ticketTiempoId = null;
+  nuevoEstadoTiempo = null;
+  // Recargar para que el select vuelva al estado anterior
+  const f = getFiltros();
+  cargarTickets(f.estado, f.categoria, f.buscar, f.prioridad);
+}
+
+async function confirmarTiempo() {
+  const tiempo = document.getElementById("inputTiempo").value.trim();
+
+  if (!tiempo || parseInt(tiempo) < 1) {
+    alert("Por favor ingresa un tiempo válido en minutos");
+    return;
+  }
+
+  await enviarCambioEstado(ticketTiempoId, nuevoEstadoTiempo, tiempo);
+  document.getElementById("modalTiempo").style.display = "none";
+  ticketTiempoId = null;
+  nuevoEstadoTiempo = null;
+}
+
+// Enter en el input de tiempo
+document.addEventListener("DOMContentLoaded", () => {
+  const inputTiempo = document.getElementById("inputTiempo");
+  if (inputTiempo) {
+    inputTiempo.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") confirmarTiempo();
+    });
+  }
+});
 
 // =====================
 // ELIMINAR TICKET
@@ -146,17 +204,13 @@ form.addEventListener("submit", async e => {
 });
 
 // =====================
-// MODAL — ABRIR / CERRAR
+// MODAL COMENTARIOS/HISTORIAL
 // =====================
 function abrirModal(id, descripcion) {
   ticketActualId = id;
   document.getElementById("modalDescripcion").innerText = `📌 ${descripcion}`;
   document.getElementById("modalComentarios").style.display = "flex";
-
-  // Siempre abre en la pestaña de comentarios
   cambiarTab("comentarios");
-
-  // Cargar ambos datos
   cargarComentarios(id);
   cargarHistorial(id);
 }
@@ -170,22 +224,13 @@ document.getElementById("modalComentarios").addEventListener("click", function (
   if (e.target === this) cerrarModal();
 });
 
-// =====================
-// MODAL — PESTAÑAS
-// =====================
 function cambiarTab(pestaña) {
-  // Botones de tab
   document.getElementById("tabComentarios").className = "tab-btn" + (pestaña === "comentarios" ? " tab-activo" : "");
   document.getElementById("tabHistorial").className   = "tab-btn" + (pestaña === "historial"   ? " tab-activo" : "");
-
-  // Contenido
   document.getElementById("contenidoComentarios").style.display = pestaña === "comentarios" ? "flex" : "none";
   document.getElementById("contenidoHistorial").style.display   = pestaña === "historial"   ? "block" : "none";
 }
 
-// =====================
-// COMENTARIOS
-// =====================
 async function cargarComentarios(id) {
   const res = await fetch(`/tickets?`);
   const tickets = await res.json();
@@ -232,9 +277,6 @@ async function agregarComentario() {
   cargarComentarios(ticketActualId);
 }
 
-// =====================
-// HISTORIAL
-// =====================
 async function cargarHistorial(id) {
   const res = await fetch(`/tickets?`);
   const tickets = await res.json();
@@ -248,17 +290,18 @@ async function cargarHistorial(id) {
     return;
   }
 
-  // Mostrar del más reciente al más antiguo
   const historial = [...ticket.historial].reverse();
 
   historial.forEach((h, i) => {
     const div = document.createElement("div");
     div.className = "historial-item";
 
-    // Color según el valor nuevo
     let colorClase = "";
     if (h.campo === "estado") {
-      colorClase = h.valorNuevo === "Cerrado" ? "historial-cerrado" : "historial-abierto";
+      if (h.valorNuevo === "Cerrado") colorClase = "historial-cerrado";
+      else if (h.valorNuevo === "Abierto") colorClase = "historial-abierto";
+      else if (h.valorNuevo === "Pendiente Usuario") colorClase = "historial-pendiente-usuario";
+      else if (h.valorNuevo === "Pendiente Proveedor") colorClase = "historial-pendiente-proveedor";
     }
 
     div.innerHTML = `
@@ -283,15 +326,9 @@ async function cargarHistorial(id) {
   });
 }
 
-// =====================
-// LOGOUT
-// =====================
 async function logout() {
   await fetch("/logout", { method: "POST" });
   location.href = "/login.html";
 }
 
-// =====================
-// INICIO
-// =====================
 cargarTickets();

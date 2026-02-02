@@ -156,7 +156,6 @@ app.get("/tickets", auth, async (req, res) => {
   res.json(tickets);
 });
 
-// POST /tickets — crea el ticket y deja una entrada inicial en el historial
 app.post("/tickets", auth, async (req, res) => {
   const ticket = await Ticket.create({
     tipo: req.body.tipo,
@@ -176,12 +175,11 @@ app.post("/tickets", auth, async (req, res) => {
   res.json({ ok: true });
 });
 
-// POST /estado — guarda el historial ANTES de cambiar el estado
+// POST /estado — ahora acepta tiempoGestion opcional cuando se cierra el ticket
 app.post("/estado", auth, onlyIT, async (req, res) => {
   const ticket = await Ticket.findById(req.body.id);
   if (!ticket) return res.status(404).json({ error: "Ticket no encontrado" });
 
-  // Solo guardar historial si el estado realmente cambió
   if (ticket.estado !== req.body.estado) {
     ticket.historial.push({
       campo: "estado",
@@ -191,6 +189,12 @@ app.post("/estado", auth, onlyIT, async (req, res) => {
     });
 
     ticket.estado = req.body.estado;
+
+    // Si se cierra el ticket y viene tiempoGestion, guardarlo
+    if (req.body.estado === "Cerrado" && req.body.tiempoGestion) {
+      ticket.tiempoGestion = parseInt(req.body.tiempoGestion);
+    }
+
     await ticket.save();
   }
 
@@ -318,6 +322,56 @@ app.get("/reporte-prioridades", auth, onlyIT, async (req, res) => {
   res.json(resultado);
 });
 
+// GET /estadisticas-tiempo — tiempo promedio de resolución por categoría y prioridad
+app.get("/estadisticas-tiempo", auth, onlyIT, async (req, res) => {
+  const { mes, anio } = req.query;
+
+  const inicio = new Date(anio, mes - 1, 1);
+  const fin = new Date(anio, mes, 0, 23, 59, 59);
+
+  const tickets = await Ticket.find({
+    estado: "Cerrado",
+    createdAt: { $gte: inicio, $lte: fin },
+    tiempoGestion: { $ne: null } // solo los que tienen tiempo registrado
+  });
+
+  // Agrupar por categoría
+  const porCategoria = {};
+  tickets.forEach(t => {
+    if (!porCategoria[t.categoria]) {
+      porCategoria[t.categoria] = { suma: 0, cantidad: 0 };
+    }
+    porCategoria[t.categoria].suma += t.tiempoGestion;
+    porCategoria[t.categoria].cantidad++;
+  });
+
+  // Calcular promedios
+  const promedioCategoria = {};
+  Object.keys(porCategoria).forEach(cat => {
+    promedioCategoria[cat] = Math.round(porCategoria[cat].suma / porCategoria[cat].cantidad);
+  });
+
+  // Agrupar por prioridad
+  const porPrioridad = {};
+  tickets.forEach(t => {
+    if (!porPrioridad[t.prioridad]) {
+      porPrioridad[t.prioridad] = { suma: 0, cantidad: 0 };
+    }
+    porPrioridad[t.prioridad].suma += t.tiempoGestion;
+    porPrioridad[t.prioridad].cantidad++;
+  });
+
+  const promedioPrioridad = {};
+  Object.keys(porPrioridad).forEach(pri => {
+    promedioPrioridad[pri] = Math.round(porPrioridad[pri].suma / porPrioridad[pri].cantidad);
+  });
+
+  res.json({
+    porCategoria: promedioCategoria,
+    porPrioridad: promedioPrioridad
+  });
+});
+
 app.get("/exportar-csv", auth, onlyIT, async (req, res) => {
   const { mes, anio } = req.query;
 
@@ -329,9 +383,9 @@ app.get("/exportar-csv", auth, onlyIT, async (req, res) => {
     createdAt: { $gte: inicio, $lte: fin }
   });
 
-  let csv = "Tipo,Categoria,Descripcion,Prioridad,Estado,Creado Por,Fecha\n";
+  let csv = "Tipo,Categoria,Descripcion,Prioridad,Estado,Creado Por,Tiempo Gestion (min),Fecha\n";
   tickets.forEach(t => {
-    csv += `"${t.tipo}","${t.categoria}","${t.descripcion}","${t.prioridad || "Media"}","${t.estado}","${t.creadoPor || "—"}","${t.createdAt.toISOString()}"\n`;
+    csv += `"${t.tipo}","${t.categoria}","${t.descripcion}","${t.prioridad || "Media"}","${t.estado}","${t.creadoPor || "—"}","${t.tiempoGestion || "—"}","${t.createdAt.toISOString()}"\n`;
   });
 
   res.setHeader("Content-Type", "text/csv");
