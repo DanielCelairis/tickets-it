@@ -59,16 +59,19 @@
     </div>
 
     <div class="chart-card tabla-card">
-      <h3>Detalle por categoría</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Categoría</th>
-            <th>Total</th>
-          </tr>
-        </thead>
-        <tbody id="tablaCerrados"></tbody>
-      </table>
+      <h3>Detalle por categoría y subcategoría</h3>
+      <div style="max-height:320px;overflow-y:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>Categoría</th>
+              <th>Subcategoría</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody id="tablaCerrados"></tbody>
+        </table>
+      </div>
     </div>
   </div>
 
@@ -104,7 +107,7 @@
           <thead>
             <tr>
               <th>Categoría</th>
-              <th>Promedio (min)</th>
+              <th>Promedio</th>
             </tr>
           </thead>
           <tbody id="tablaTiempoCategoria"></tbody>
@@ -117,7 +120,7 @@
           <thead>
             <tr>
               <th>Prioridad</th>
-              <th>Promedio (min)</th>
+              <th>Promedio</th>
             </tr>
           </thead>
           <tbody id="tablaTiempoPrioridad"></tbody>

@@ -22,6 +22,7 @@ const TicketSchema = new mongoose.Schema(
   {
     tipo: String,
     categoria: String,
+    subcategoria: String,  // 🆕 subcategoría dependiente de la categoría
     descripcion: String,
     estado: {
       type: String,
@@ -34,7 +35,7 @@ const TicketSchema = new mongoose.Schema(
       default: "Media"
     },
     tiempoGestion: {
-      type: Number,  // tiempo en minutos
+      type: Number,
       default: null
     },
     creadoPor: String,

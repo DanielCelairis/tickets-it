@@ -29,18 +29,23 @@
     </select>
 
     <select id="categoria">
-      <option>Desbloqueo de Usuario Isoft</option>
-      <option>Desbloqueo de Usuario EmeSmart</option>
-      <option>Creación de PDV</option>
-      <option>Equipo (Laptop, PC)</option>
-      <option>Correo</option>
-      <option>Nuevo Ingreso</option>
-      <option>Internet</option>
-      <option>Telefono</option>
+      <option value="">Seleccionar categoría</option>
+      <option>Isoft</option>
       <option>Emesmart</option>
+      <option>Correo</option>
+      <option>Redes</option>
+      <option>Telefonia</option>
       <option>Kommo</option>
       <option>SIG</option>
       <option>Fiscal</option>
+      <option>GDS (KrediYA)</option>
+      <option>DMS</option>
+      <option>Soporte Tecnico</option>
+      <option>Compras</option>
+    </select>
+
+    <select id="subcategoria" disabled>
+      <option value="">Seleccionar subcategoría</option>
     </select>
 
     <select id="prioridad">
@@ -55,7 +60,7 @@
 
   <!-- BARRA DE BÚSQUEDA Y FILTROS -->
   <div class="filtros-tickets">
-    <input type="text" id="buscar" placeholder="🔍 Buscar por descripción, categoría o usuario..." oninput="filtrarTickets()">
+    <input type="text" id="buscar" placeholder="🔍 Buscar..." oninput="filtrarTickets()">
 
     <select id="filtroEstado" onchange="filtrarTickets()">
       <option value="">Todos los estados</option>
@@ -67,18 +72,18 @@
 
     <select id="filtroCategoria" onchange="filtrarTickets()">
       <option value="">Todas las categorías</option>
-      <option>Desbloqueo de Usuario Isoft</option>
-      <option>Desbloqueo de Usuario EmeSmart</option>
-      <option>Creación de PDV</option>
-      <option>Equipo (Laptop, PC)</option>
-      <option>Correo</option>
-      <option>Nuevo Ingreso</option>
-      <option>Internet</option>
-      <option>Telefono</option>
+      <option>Isoft</option>
       <option>Emesmart</option>
+      <option>Correo</option>
+      <option>Redes</option>
+      <option>Telefonia</option>
       <option>Kommo</option>
       <option>SIG</option>
       <option>Fiscal</option>
+      <option>GDS (KrediYA)</option>
+      <option>DMS</option>
+      <option>Soporte Tecnico</option>
+      <option>Compras</option>
     </select>
 
     <select id="filtroPrioridad" onchange="filtrarTickets()">
@@ -97,6 +102,7 @@
       <tr>
         <th>Tipo</th>
         <th>Categoría</th>
+        <th>Subcategoría</th>
         <th>Descripción</th>
         <th>Prioridad</th>
         <th>Creado por</th>
@@ -133,7 +139,7 @@
   </div>
 </div>
 
-<!-- MODAL: TIEMPO DE GESTIÓN (aparece al cerrar ticket) -->
+<!-- MODAL: TIEMPO DE GESTIÓN -->
 <div id="modalTiempo" class="modal-overlay" style="display:none;">
   <div class="modal-box-small">
     <div class="modal-header">
@@ -142,8 +148,16 @@
     </div>
     <div class="modal-tiempo-contenido">
       <p>¿Cuánto tiempo tomó resolver este ticket?</p>
-      <input type="number" id="inputTiempo" placeholder="Ej: 15" min="1" step="1">
-      <span class="tiempo-unidad">minutos</span>
+      <div class="tiempo-inputs">
+        <div class="tiempo-campo">
+          <label>Horas</label>
+          <input type="number" id="inputHoras" placeholder="0" min="0" step="1">
+        </div>
+        <div class="tiempo-campo">
+          <label>Minutos</label>
+          <input type="number" id="inputMinutos" placeholder="0" min="0" max="59" step="1">
+        </div>
+      </div>
       <div class="modal-tiempo-botones">
         <button class="btn-cancelar" onclick="cerrarModalTiempo()">Cancelar</button>
         <button class="btn-confirmar" onclick="confirmarTiempo()">Confirmar</button>

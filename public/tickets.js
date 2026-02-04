@@ -2,8 +2,140 @@ const tabla = document.getElementById("tablaTickets");
 const form = document.getElementById("formTicket");
 
 let ticketActualId = null;
-let ticketTiempoId = null;    // guarda el ID del ticket que se está cerrando
-let nuevoEstadoTiempo = null; // guarda el estado al que se va a cambiar
+let ticketTiempoId = null;
+let nuevoEstadoTiempo = null;
+
+// =====================
+// SUBCATEGORÍAS POR CATEGORÍA
+// =====================
+const SUBCATEGORIAS = {
+  "Isoft": [
+    "Creación de usuario",
+    "Desbloqueo de usuario",
+    "Deshabilitar usuario"
+  ],
+  "Emesmart": [
+    "Creación de usuario",
+    "Desbloqueo de usuario",
+    "Creación de PDV",
+    "Asignación de PDV",
+    "Creación de circuito",
+    "Creación de ruta",
+    "Restablecer coordenadas de PDV",
+    "Deshabilitar usuario",
+    "Deshabilitar PDV",
+    "Asignación de QR",
+    "Actualización de PDV",
+    "Creación de producto",
+    "Creación de grupo",
+    "Asignación de precio o alias",
+    "Revisión de seriales",
+    "Revisión de caja",
+    "Revisión de facturas",
+    "Fallas otras",
+    "Requerimiento otros"
+  ],
+  "Correo": [
+    "Creación de correo",
+    "Deshabilitar correo",
+    "Restablecer contraseña",
+    "Respaldo de correos",
+    "Configuración otras"
+  ],
+  "Redes": [
+    "Falla en la red"
+  ],
+  "Telefonia": [
+    "Fallas otras del teléfono",
+    "Requerimientos otros del teléfono"
+  ],
+  "Kommo": [
+    "Creación de usuario",
+    "Deshabilitar usuario",
+    "Reinicio de contraseña",
+    "Configuración Salesbot",
+    "Configuración automatiza",
+    "Fallas otras",
+    "Requerimientos otros"
+  ],
+  "SIG": [
+    "Creación de usuario",
+    "Deshabilitar usuario",
+    "Creación de grupo",
+    "Revisión de seriales",
+    "Revisión de caja",
+    "Revisión de facturas",
+    "Fallas otras",
+    "Requerimiento otros"
+  ],
+  "Fiscal": [
+    "Creación de cliente",
+    "Creación de fiscal",
+    "Fallas otras",
+    "Requerimiento otros"
+  ],
+  "GDS (KrediYA)": [
+    "Creación de usuario",
+    "Deshabilitar usuario"
+  ],
+  "DMS": [
+    "Creación de usuario",
+    "Restablecer contraseña de usuario",
+    "Legalización de PDV",
+    "Asignación de PDV",
+    "Creación de circuito",
+    "Creación de ruta",
+    "Deshabilitar usuario",
+    "Deshabilitar PDV",
+    "Actualización de PDV",
+    "Asignación de precio o alias",
+    "Revisión de seriales",
+    "Revisión de caja",
+    "Revisión de facturas",
+    "Fallas otras",
+    "Requerimiento otros"
+  ],
+  "Soporte Tecnico": [
+    "Fallas Hardware",
+    "Requerimiento de Hardware",
+    "Fallas Software",
+    "Requerimiento Software"
+  ],
+  "Compras": [
+    "Mouse",
+    "UPS",
+    "Laptop",
+    "Monitor",
+    "Teclado",
+    "Reparación de laptop"
+  ]
+};
+
+// =====================
+// ACTUALIZAR SUBCATEGORÍAS DINÁMICAMENTE
+// =====================
+function actualizarSubcategorias() {
+  const categoria = document.getElementById("categoria").value;
+  const subSelect = document.getElementById("subcategoria");
+
+  // Limpiar opciones anteriores
+  subSelect.innerHTML = '<option value="">Seleccionar subcategoría</option>';
+
+  if (categoria && SUBCATEGORIAS[categoria]) {
+    subSelect.disabled = false;
+    SUBCATEGORIAS[categoria].forEach(sub => {
+      const option = document.createElement("option");
+      option.value = sub;
+      option.textContent = sub;
+      subSelect.appendChild(option);
+    });
+  } else {
+    subSelect.disabled = true;
+  }
+}
+
+// Listener para cambio de categoría
+document.getElementById("categoria").addEventListener("change", actualizarSubcategorias);
 
 // =====================
 // CARGAR TICKETS
@@ -21,7 +153,7 @@ async function cargarTickets(estado = "", categoria = "", buscar = "", prioridad
   tabla.innerHTML = "";
 
   if (tickets.length === 0) {
-    tabla.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#9ca3af;padding:30px;">No hay tickets que coincidan con los filtros.</td></tr>`;
+    tabla.innerHTML = `<tr><td colspan="8" style="text-align:center;color:#9ca3af;padding:30px;">No hay tickets que coincidan con los filtros.</td></tr>`;
     return;
   }
 
@@ -32,7 +164,6 @@ async function cargarTickets(estado = "", categoria = "", buscar = "", prioridad
       tr.className = "fila-alta-prioridad";
     }
 
-    // Clase CSS para cada estado
     let estadoClase = "abierto";
     if (t.estado === "Cerrado") estadoClase = "cerrado";
     else if (t.estado === "Pendiente Usuario") estadoClase = "pendiente-usuario";
@@ -41,6 +172,7 @@ async function cargarTickets(estado = "", categoria = "", buscar = "", prioridad
     tr.innerHTML = `
       <td><span class="badge badge-${t.tipo.toLowerCase()}">${t.tipo}</span></td>
       <td>${t.categoria}</td>
+      <td><span class="subcategoria-tag">${t.subcategoria || "—"}</span></td>
       <td>${t.descripcion}</td>
       <td><span class="badge-prioridad prioridad-${t.prioridad.toLowerCase()}">${t.prioridad === "Alta" ? "🔴" : t.prioridad === "Media" ? "🟡" : "🟢"} ${t.prioridad}</span></td>
       <td><span class="usuario-tag">👤 ${t.creadoPor || "—"}</span></td>
@@ -93,17 +225,16 @@ function limpiarFiltros() {
 // CAMBIAR ESTADO
 // =====================
 async function cambiarEstado(id, estado) {
-  // Si el nuevo estado es "Cerrado", mostrar modal de tiempo primero
   if (estado === "Cerrado") {
     ticketTiempoId = id;
     nuevoEstadoTiempo = estado;
     document.getElementById("modalTiempo").style.display = "flex";
-    document.getElementById("inputTiempo").value = "";
-    document.getElementById("inputTiempo").focus();
+    document.getElementById("inputHoras").value = "";
+    document.getElementById("inputMinutos").value = "";
+    document.getElementById("inputHoras").focus();
     return;
   }
 
-  // Para otros estados, enviar directamente
   await enviarCambioEstado(id, estado, null);
 }
 
@@ -127,36 +258,53 @@ async function enviarCambioEstado(id, estado, tiempoGestion) {
 }
 
 // =====================
-// MODAL TIEMPO DE GESTIÓN
+// MODAL TIEMPO
 // =====================
 function cerrarModalTiempo() {
   document.getElementById("modalTiempo").style.display = "none";
   ticketTiempoId = null;
   nuevoEstadoTiempo = null;
-  // Recargar para que el select vuelva al estado anterior
   const f = getFiltros();
   cargarTickets(f.estado, f.categoria, f.buscar, f.prioridad);
 }
 
 async function confirmarTiempo() {
-  const tiempo = document.getElementById("inputTiempo").value.trim();
+  const horas = parseInt(document.getElementById("inputHoras").value) || 0;
+  const minutos = parseInt(document.getElementById("inputMinutos").value) || 0;
 
-  if (!tiempo || parseInt(tiempo) < 1) {
-    alert("Por favor ingresa un tiempo válido en minutos");
+  if (horas === 0 && minutos === 0) {
+    alert("Por favor ingresa al menos 1 minuto");
     return;
   }
 
-  await enviarCambioEstado(ticketTiempoId, nuevoEstadoTiempo, tiempo);
+  if (minutos > 59) {
+    alert("Los minutos deben ser entre 0 y 59");
+    return;
+  }
+
+  const totalMinutos = (horas * 60) + minutos;
+
+  await enviarCambioEstado(ticketTiempoId, nuevoEstadoTiempo, totalMinutos);
   document.getElementById("modalTiempo").style.display = "none";
   ticketTiempoId = null;
   nuevoEstadoTiempo = null;
 }
 
-// Enter en el input de tiempo
 document.addEventListener("DOMContentLoaded", () => {
-  const inputTiempo = document.getElementById("inputTiempo");
-  if (inputTiempo) {
-    inputTiempo.addEventListener("keypress", (e) => {
+  const inputHoras = document.getElementById("inputHoras");
+  const inputMinutos = document.getElementById("inputMinutos");
+  
+  if (inputHoras) {
+    inputHoras.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
+        inputMinutos.focus();
+        inputMinutos.select();
+      }
+    });
+  }
+  
+  if (inputMinutos) {
+    inputMinutos.addEventListener("keypress", (e) => {
       if (e.key === "Enter") confirmarTiempo();
     });
   }
@@ -185,12 +333,26 @@ async function eliminarTicket(id) {
 form.addEventListener("submit", async e => {
   e.preventDefault();
 
+  const categoria = document.getElementById("categoria").value;
+  const subcategoria = document.getElementById("subcategoria").value;
+
+  if (!categoria) {
+    alert("Por favor selecciona una categoría");
+    return;
+  }
+
+  if (!subcategoria) {
+    alert("Por favor selecciona una subcategoría");
+    return;
+  }
+
   await fetch("/tickets", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       tipo: document.getElementById("tipo").value,
-      categoria: document.getElementById("categoria").value,
+      categoria: categoria,
+      subcategoria: subcategoria,
       descripcion: document.getElementById("descripcion").value,
       prioridad: document.getElementById("prioridad").value
     })
@@ -198,6 +360,8 @@ form.addEventListener("submit", async e => {
 
   form.reset();
   document.getElementById("prioridad").value = "Media";
+  document.getElementById("subcategoria").disabled = true;
+  document.getElementById("subcategoria").innerHTML = '<option value="">Seleccionar subcategoría</option>';
 
   const f = getFiltros();
   cargarTickets(f.estado, f.categoria, f.buscar, f.prioridad);

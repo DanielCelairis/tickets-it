@@ -103,6 +103,15 @@ function onlyIT(req, res, next) {
   next();
 }
 
+function formatearTiempo(minutos) {
+  if (!minutos || minutos === 0) return "0m";
+  const horas = Math.floor(minutos / 60);
+  const mins = minutos % 60;
+  if (horas === 0) return `${mins}m`;
+  if (mins === 0) return `${horas}h`;
+  return `${horas}h ${mins}m`;
+}
+
 // =====================
 // PUBLIC (estático)
 // =====================
@@ -135,12 +144,14 @@ app.get("/tickets", auth, async (req, res) => {
 
   if (req.query.estado) filtro.estado = req.query.estado;
   if (req.query.categoria) filtro.categoria = req.query.categoria;
+  if (req.query.subcategoria) filtro.subcategoria = req.query.subcategoria;
   if (req.query.prioridad) filtro.prioridad = req.query.prioridad;
   if (req.query.buscar) {
     const regex = new RegExp(req.query.buscar, "i");
     filtro.$or = [
       { descripcion: regex },
       { categoria: regex },
+      { subcategoria: regex },
       { creadoPor: regex }
     ];
   }
@@ -160,6 +171,7 @@ app.post("/tickets", auth, async (req, res) => {
   const ticket = await Ticket.create({
     tipo: req.body.tipo,
     categoria: req.body.categoria,
+    subcategoria: req.body.subcategoria,
     descripcion: req.body.descripcion,
     prioridad: req.body.prioridad || "Media",
     creadoPor: req.cookies.usuario,
@@ -175,7 +187,6 @@ app.post("/tickets", auth, async (req, res) => {
   res.json({ ok: true });
 });
 
-// POST /estado — ahora acepta tiempoGestion opcional cuando se cierra el ticket
 app.post("/estado", auth, onlyIT, async (req, res) => {
   const ticket = await Ticket.findById(req.body.id);
   if (!ticket) return res.status(404).json({ error: "Ticket no encontrado" });
@@ -190,7 +201,6 @@ app.post("/estado", auth, onlyIT, async (req, res) => {
 
     ticket.estado = req.body.estado;
 
-    // Si se cierra el ticket y viene tiempoGestion, guardarlo
     if (req.body.estado === "Cerrado" && req.body.tiempoGestion) {
       ticket.tiempoGestion = parseInt(req.body.tiempoGestion);
     }
@@ -265,6 +275,8 @@ app.delete("/usuarios/:id", auth, onlyIT, async (req, res) => {
 // =====================
 // REPORTES / DASHBOARD
 // =====================
+
+// GET /reporte-cerrados — ahora agrupa por categoria Y subcategoria
 app.get("/reporte-cerrados", auth, onlyIT, async (req, res) => {
   const { mes, anio } = req.query;
 
@@ -276,14 +288,33 @@ app.get("/reporte-cerrados", auth, onlyIT, async (req, res) => {
     createdAt: { $gte: inicio, $lte: fin }
   });
 
-  const resumen = {};
+  // Agrupar por categoría (para el pie chart)
+  const porCategoria = {};
   tickets.forEach(t => {
-    resumen[t.categoria] = (resumen[t.categoria] || 0) + 1;
+    porCategoria[t.categoria] = (porCategoria[t.categoria] || 0) + 1;
+  });
+
+  // Agrupar por categoría + subcategoría (para la tabla de detalles)
+  const detallado = [];
+  tickets.forEach(t => {
+    const key = `${t.categoria} > ${t.subcategoria}`;
+    const existente = detallado.find(d => d.key === key);
+    if (existente) {
+      existente.total++;
+    } else {
+      detallado.push({
+        key,
+        categoria: t.categoria,
+        subcategoria: t.subcategoria,
+        total: 1
+      });
+    }
   });
 
   res.json({
     totalCerrados: tickets.length,
-    porCategoria: resumen
+    porCategoria,
+    detallado: detallado.sort((a, b) => b.total - a.total)
   });
 });
 
@@ -322,7 +353,6 @@ app.get("/reporte-prioridades", auth, onlyIT, async (req, res) => {
   res.json(resultado);
 });
 
-// GET /estadisticas-tiempo — tiempo promedio de resolución por categoría y prioridad
 app.get("/estadisticas-tiempo", auth, onlyIT, async (req, res) => {
   const { mes, anio } = req.query;
 
@@ -332,10 +362,10 @@ app.get("/estadisticas-tiempo", auth, onlyIT, async (req, res) => {
   const tickets = await Ticket.find({
     estado: "Cerrado",
     createdAt: { $gte: inicio, $lte: fin },
-    tiempoGestion: { $ne: null } // solo los que tienen tiempo registrado
+    tiempoGestion: { $ne: null }
   });
 
-  // Agrupar por categoría
+  // Por categoría
   const porCategoria = {};
   tickets.forEach(t => {
     if (!porCategoria[t.categoria]) {
@@ -345,13 +375,13 @@ app.get("/estadisticas-tiempo", auth, onlyIT, async (req, res) => {
     porCategoria[t.categoria].cantidad++;
   });
 
-  // Calcular promedios
   const promedioCategoria = {};
   Object.keys(porCategoria).forEach(cat => {
-    promedioCategoria[cat] = Math.round(porCategoria[cat].suma / porCategoria[cat].cantidad);
+    const promMinutos = Math.round(porCategoria[cat].suma / porCategoria[cat].cantidad);
+    promedioCategoria[cat] = formatearTiempo(promMinutos);
   });
 
-  // Agrupar por prioridad
+  // Por prioridad
   const porPrioridad = {};
   tickets.forEach(t => {
     if (!porPrioridad[t.prioridad]) {
@@ -363,7 +393,8 @@ app.get("/estadisticas-tiempo", auth, onlyIT, async (req, res) => {
 
   const promedioPrioridad = {};
   Object.keys(porPrioridad).forEach(pri => {
-    promedioPrioridad[pri] = Math.round(porPrioridad[pri].suma / porPrioridad[pri].cantidad);
+    const promMinutos = Math.round(porPrioridad[pri].suma / porPrioridad[pri].cantidad);
+    promedioPrioridad[pri] = formatearTiempo(promMinutos);
   });
 
   res.json({
@@ -383,9 +414,10 @@ app.get("/exportar-csv", auth, onlyIT, async (req, res) => {
     createdAt: { $gte: inicio, $lte: fin }
   });
 
-  let csv = "Tipo,Categoria,Descripcion,Prioridad,Estado,Creado Por,Tiempo Gestion (min),Fecha\n";
+  let csv = "Tipo,Categoria,Subcategoria,Descripcion,Prioridad,Estado,Creado Por,Tiempo Gestion,Fecha\n";
   tickets.forEach(t => {
-    csv += `"${t.tipo}","${t.categoria}","${t.descripcion}","${t.prioridad || "Media"}","${t.estado}","${t.creadoPor || "—"}","${t.tiempoGestion || "—"}","${t.createdAt.toISOString()}"\n`;
+    const tiempo = t.tiempoGestion ? formatearTiempo(t.tiempoGestion) : "—";
+    csv += `"${t.tipo}","${t.categoria}","${t.subcategoria || "—"}","${t.descripcion}","${t.prioridad || "Media"}","${t.estado}","${t.creadoPor || "—"}","${tiempo}","${t.createdAt.toISOString()}"\n`;
   });
 
   res.setHeader("Content-Type", "text/csv");

@@ -32,7 +32,6 @@ async function consultar() {
   const mes = mesSelect.value;
   const anio = anioSelect.value;
 
-  // Peticiones en paralelo
   const [resCerrados, resAbiertos, resPrioridades, resTiempo] = await Promise.all([
     fetch(`/reporte-cerrados?mes=${mes}&anio=${anio}`),
     fetch(`/reporte-abiertos?mes=${mes}&anio=${anio}`),
@@ -60,23 +59,26 @@ async function consultar() {
   document.getElementById("priMedia").innerText = prioridades.Media;
   document.getElementById("priBaja").innerText = prioridades.Baja;
 
-  // Tabla de categorías cerradas
+  // Tabla de detalles (categoría + subcategoría)
   const tbody = document.getElementById("tablaCerrados");
   tbody.innerHTML = "";
 
-  const categorias = Object.entries(cerrados.porCategoria);
-
-  if (categorias.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="2" style="text-align:center;color:#9ca3af;">No hay datos para este mes.</td></tr>`;
+  if (cerrados.detallado.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:#9ca3af;">No hay datos para este mes.</td></tr>`;
   } else {
-    categorias.forEach(([cat, total]) => {
+    cerrados.detallado.forEach(item => {
       const tr = document.createElement("tr");
-      tr.innerHTML = `<td>${cat}</td><td><strong>${total}</strong></td>`;
+      tr.innerHTML = `
+        <td>${item.categoria}</td>
+        <td><span class="subcategoria-badge">${item.subcategoria}</span></td>
+        <td><strong>${item.total}</strong></td>
+      `;
       tbody.appendChild(tr);
     });
   }
 
-  // Gráfico pie
+  // Gráfico pie (solo categorías principales)
+  const categorias = Object.entries(cerrados.porCategoria);
   dibujarPieChart(categorias);
 
   // Tablas de tiempo promedio
